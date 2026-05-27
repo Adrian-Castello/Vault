@@ -1,0 +1,130 @@
+@import '@fontsource-variable/inter';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #FAFAFA;
+  --card: #FFFFFF;
+  --border: #E5E7EB;
+  --ink: #0A0A0A;
+  --muted: #6B7280;
+  --mint: #34D399;
+  --mint-soft: #6EE7B7;
+  --violet: #8B5CF6;
+  --violet-soft: #A78BFA;
+  --alert: #EF4444;
+  --warm: #F59E0B;
+  --grid: rgba(0, 0, 0, 0.06);
+  --tooltip-bg: #FFFFFF;
+  --tooltip-border: #E5E7EB;
+}
+
+.dark {
+  --bg: #0A0A0B;
+  --card: #141416;
+  --border: #27272A;
+  --ink: #FAFAFA;
+  --muted: #A1A1AA;
+  --mint: #34D399;
+  --mint-soft: #6EE7B7;
+  --violet: #8B5CF6;
+  --violet-soft: #A78BFA;
+  --alert: #EF4444;
+  --warm: #F59E0B;
+  --grid: rgba(255, 255, 255, 0.08);
+  --tooltip-bg: #141416;
+  --tooltip-border: #27272A;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter Variable', Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
+  background-color: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  transition: background-color 250ms ease, color 250ms ease;
+}
+
+/* Hide spin buttons on number inputs */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+/* Scrollbar polish in dark mode */
+.dark ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #2a2a2e;
+  border-radius: 8px;
+}
+.dark ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Utility classes bound to CSS variables for cleaner JSX */
+@layer utilities {
+  .bg-surface {
+    background-color: var(--bg);
+  }
+  .bg-card {
+    background-color: var(--card);
+  }
+  .text-ink {
+    color: var(--ink);
+  }
+  .text-muted {
+    color: var(--muted);
+  }
+  .border-subtle {
+    border-color: var(--border);
+  }
+  .ring-subtle {
+    --tw-ring-color: var(--border);
+  }
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Card style */
+.card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.05);
+  transition: box-shadow 200ms ease, transform 200ms ease, border-color 200ms ease;
+}
+.dark .card {
+  box-shadow: none;
+}
+.card-hoverable:hover {
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 14px rgba(16, 24, 40, 0.08);
+}
+.dark .card-hoverable:hover {
+  border-color: #3a3a3e;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Bottom-nav safe area on iOS */
+.safe-bottom {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}

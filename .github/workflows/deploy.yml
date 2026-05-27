@@ -36,7 +36,7 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           # Set this to '/' if you deploy to a custom domain, or to '/<repo-name>/'
           # if you deploy to https://<user>.github.io/<repo-name>/
-          VITE_BASE_PATH: ${{ vars.VITE_BASE_PATH || '/vault/' }}
+          VITE_BASE_PATH: ${{ vars.VITE_BASE_PATH || '/Vault/' }}
         run: npm run build
 
       - name: SPA fallback (copy index.html to 404.html)

@@ -2,19 +2,14 @@ import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { SubscriptionList } from '../components/Subscriptions/SubscriptionList'
 import { SubscriptionForm } from '../components/Subscriptions/SubscriptionForm'
+import { SubscriptionsKpis } from '../components/Subscriptions/SubscriptionsKpis'
 import { PageHeader } from '../components/ui/PageHeader'
-import {
-  formatEuroSmart,
-  totalMonthlySubscriptions,
-} from '../lib/calculations'
 import type { Subscription } from '../lib/types'
 import type { AppOutletContext } from '../App'
 
 export function SubscriptionsPage() {
   const { subscriptions, modal, setModal } = useOutletContext<AppOutletContext>()
   const [editing, setEditing] = useState<Subscription | null>(null)
-
-  const total = totalMonthlySubscriptions(subscriptions.data)
 
   const open = modal === 'subscription' || editing !== null
 
@@ -28,15 +23,15 @@ export function SubscriptionsPage() {
       <PageHeader
         title="Suscripciones"
         subtitle={
-          <span>
-            Total mensual equivalente:{' '}
-            <span className="text-ink font-medium tabular-nums">
-              {formatEuroSmart(total)}
-            </span>
+          <span className="text-muted">
+            Gestiona todos tus cobros recurrentes en un solo sitio.
           </span>
         }
-
       />
+
+      {!subscriptions.loading && subscriptions.data.length > 0 && (
+        <SubscriptionsKpis items={subscriptions.data} />
+      )}
 
       <SubscriptionList
         items={subscriptions.data}

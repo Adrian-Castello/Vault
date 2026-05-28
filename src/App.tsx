@@ -9,6 +9,7 @@ import { Sidebar } from './components/ui/Sidebar'
 import { BottomNav } from './components/ui/BottomNav'
 import { FloatingAddButton } from './components/ui/FloatingAddButton'
 import { Toaster } from './components/ui/Toaster'
+import { SettingsModal } from './components/ui/SettingsModal'
 import { useSubscriptions } from './hooks/useSubscriptions'
 import { useFinancings } from './hooks/useFinancings'
 import { DashboardPage } from './pages/DashboardPage'
@@ -25,12 +26,14 @@ export interface AppOutletContext {
   financings: ReturnType<typeof useFinancings>
   modal: ModalKind
   setModal: (m: ModalKind) => void
+  openSettings: () => void
 }
 
 function Shell() {
   const subscriptions = useSubscriptions()
   const financings = useFinancings()
   const [modal, setModal] = useState<ModalKind>(null)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const location = useLocation()
 
   const path = location.pathname
@@ -41,11 +44,12 @@ function Shell() {
     financings,
     modal,
     setModal,
+    openSettings: () => setSettingsOpen(true),
   }
 
   return (
     <div className="min-h-full flex bg-surface">
-      <Sidebar />
+      <Sidebar onOpenSettings={() => setSettingsOpen(true)} />
       <main className="flex-1 min-w-0 pb-28 md:pb-10 px-4 sm:px-6 md:px-10 pt-5 md:pt-8 max-w-5xl mx-auto w-full">
         {!isSupabaseConfigured && <ConfigBanner />}
         <Outlet context={contextValue} />
@@ -78,6 +82,8 @@ function Shell() {
           />
         </>
       )}
+
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
       <Toaster />
     </div>

@@ -15,23 +15,65 @@ import {
   toISODate,
 } from './dates'
 
-/** Cost of a subscription normalised to a monthly figure. */
-export function monthlyCostOfSubscription(sub: Subscription): number {
-  switch (sub.billing_cycle) {
-    case 'monthly':
-      return sub.price
-    case 'quarterly':
-      return sub.price / 3
-    case 'yearly':
-      return sub.price / 12
+// =====================================================================
+// HELPERS DE ESTADO
+// =====================================================================
+
+/**
+ * Una suscripción "cuenta" para coste mensual, calendario y proyecciones
+ * solo cuando su status es 'active'. Trial/paused/cancelled se ignoran.
+ */
+export function subscriptionCounts(sub: Subscription): boolean {
+  return sub.status === 'active'
+}
+
+export function activeSubscriptions(subs: Subscription[]): Subscription[] {
+  return subs.filter(subscriptionCounts)
+}
+
+export function subscriptionsByStatus(subs: Subscription[]) {
+  return {
+    active:    subs.filter((s) => s.status === 'active'),
+    trial:     subs.filter((s) => s.status === 'trial'),
+    paused:    subs.filter((s) => s.status === 'paused'),
+    cancelled: subs.filter((s) => s.status === 'cancelled'),
   }
 }
 
-export function totalMonthlySubscriptions(subs: Subscription[]): number {
-  return subs.reduce((acc, s) => acc + monthlyCostOfSubscription(s), 0)
+// =====================================================================
+// COSTE
+// =====================================================================
+
+/** Coste de una suscripción normalizado a un valor mensual equivalente. */
+export function monthlyCostOfSubscription(sub: Subscription): number {
+  switch (sub.billing_cycle) {
+    case 'monthly':    return sub.price
+    case 'quarterly':  return sub.price / 3
+    case 'semiannual': return sub.price / 6
+    case 'yearly':     return sub.price / 12
+  }
 }
 
-/** Active financings = those with paid < total. */
+/** Coste mensual total de las suscripciones ACTIVAS. */
+export function totalMonthlySubscriptions(subs: Subscription[]): number {
+  return activeSubscriptions(subs).reduce((acc, s) => acc + monthlyCostOfSubscription(s), 0)
+}
+
+/** Cuántos meses tiene cada ciclo. */
+export function monthsPerCycle(cycle: Subscription['billing_cycle']): number {
+  switch (cycle) {
+    case 'monthly':    return 1
+    case 'quarterly':  return 3
+    case 'semiannual': return 6
+    case 'yearly':     return 12
+  }
+}
+
+// =====================================================================
+// FINANCIACIONES
+// =====================================================================
+
+/** Financiaciones activas = aún les quedan cuotas por pagar. */
 export function activeFinancings(fins: Financing[]): Financing[] {
   return fins.filter((f) => f.paid_installments < f.total_installments)
 }
@@ -43,25 +85,66 @@ export function totalMonthlyFinancings(fins: Financing[]): number {
 export function totalRemainingDebt(fins: Financing[]): number {
   return fins.reduce(
     (acc, f) =>
-      acc +
-      Math.max(0, f.total_installments - f.paid_installments) * f.monthly_payment,
+      acc + Math.max(0, f.total_installments - f.paid_installments) * f.monthly_payment,
     0,
   )
 }
+
+/** Importe total que ya se ha pagado en todas las financiaciones. */
+export function totalPaidAmount(fins: Financing[]): number {
+  return fins.reduce((acc, f) => acc + f.paid_installments * f.monthly_payment, 0)
+}
+
+/** Importe total comprometido (suma de total_amount). */
+export function totalCommittedAmount(fins: Financing[]): number {
+  return fins.reduce((acc, f) => acc + f.total_amount, 0)
+}
+
+/**
+ * Porcentaje global de amortización (0–100).
+ * Se calcula sobre cuotas (no sobre importes), para que financiaciones con cuotas
+ * iguales tengan el mismo peso en el progreso global.
+ */
+export function globalProgressPercent(fins: Financing[]): number {
+  let paid = 0
+  let total = 0
+  for (const f of fins) {
+    paid += f.paid_installments
+    total += f.total_installments
+  }
+  if (total === 0) return 0
+  return Math.min(100, (paid / total) * 100)
+}
+
+/**
+ * Fecha en que termina la última cuota de la última financiación activa.
+ * Devuelve null si no hay financiaciones activas.
+ */
+export function debtFreeDate(fins: Financing[]): string | null {
+  const actives = activeFinancings(fins)
+  if (actives.length === 0) return null
+  let latest: string | null = null
+  for (const f of actives) {
+    if (!latest || f.end_date > latest) latest = f.end_date
+  }
+  return latest
+}
+
+// =====================================================================
+// PROYECCIÓN / CALENDARIO
+// =====================================================================
 
 export function totalAnnualProjection(
   subs: Subscription[],
   fins: Financing[],
 ): number {
-  // Annualised monthly base
   const baseMonthly = totalMonthlySubscriptions(subs) + totalMonthlyFinancings(fins)
-  // Note: financings will taper off as they finish, so this is a high-water
-  // estimate. The 12-month projection (chart) shows the real curve.
   return baseMonthly * 12
 }
 
 /**
- * Charges due in the next `days` days (inclusive of today, exclusive of day+days).
+ * Cargos en los próximos `days` días (incluyendo hoy, excluyendo hoy+days).
+ * Solo cuenta suscripciones ACTIVAS y financiaciones con cuotas pendientes.
  */
 export function upcomingCharges(
   subs: Subscription[],
@@ -72,6 +155,7 @@ export function upcomingCharges(
   const items: UpcomingCharge[] = []
 
   for (const s of subs) {
+    if (!subscriptionCounts(s)) continue
     const d = parseISODate(s.next_charge_date)
     const diff = daysBetween(today, d)
     if (diff >= 0 && diff < days) {
@@ -107,9 +191,6 @@ export function upcomingCharges(
   return items.sort((a, b) => a.daysAway - b.daysAway)
 }
 
-/**
- * Single nearest upcoming charge (across both kinds). Includes today.
- */
 export function nextCharge(
   subs: Subscription[],
   fins: Financing[],
@@ -123,6 +204,7 @@ export function nextCharge(
   }
 
   for (const s of subs) {
+    if (!subscriptionCounts(s)) continue
     const d = parseISODate(s.next_charge_date)
     const diff = daysBetween(today, d)
     consider({
@@ -153,17 +235,9 @@ export function nextCharge(
 }
 
 /**
- * For each of the next `months` months (starting at this month), compute the
- * total subscription cost (charges falling in that month) and financing cost
- * (monthly payment as long as there are installments remaining).
- *
- * Subscriptions:
- *  - monthly: contribute price every month from their next_charge_date onward.
- *  - quarterly: contribute price every 3 months from next_charge_date.
- *  - yearly: contribute price every 12 months from next_charge_date.
- *
- * Financings:
- *  - contribute monthly_payment for the remaining installments only.
+ * Para cada uno de los próximos `months` meses (empezando este mes), calcula
+ * el coste de suscripciones (cargos que caen en ese mes) y financiaciones
+ * (cuota mensual mientras queden cuotas).
  */
 export function projectMonthlySpend(
   subs: Subscription[],
@@ -185,23 +259,18 @@ export function projectMonthlySpend(
     })
   }
 
-  // Subscriptions
+  // Suscripciones (solo activas)
   for (const s of subs) {
+    if (!subscriptionCounts(s)) continue
     const start = parseISODate(s.next_charge_date)
     const startMonth = startOfMonth(start)
-    const step =
-      s.billing_cycle === 'monthly' ? 1 : s.billing_cycle === 'quarterly' ? 3 : 12
+    const step = monthsPerCycle(s.billing_cycle)
 
-    // Iterate forward charge dates; stop when past our window
     let cursor = startMonth
     let safety = 0
     while (safety < months * 12) {
-      const idx = buckets.findIndex((b) => {
-        const bd = parseISODate(b.month)
-        return isSameMonth(bd, cursor)
-      })
+      const idx = buckets.findIndex((b) => isSameMonth(parseISODate(b.month), cursor))
       if (idx === -1) {
-        // Either before window or past it. If past, we're done.
         const lastMonth = parseISODate(buckets[buckets.length - 1].month)
         if (cursor > lastMonth) break
       } else {
@@ -212,11 +281,10 @@ export function projectMonthlySpend(
     }
   }
 
-  // Financings: monthly payment, only for remaining installments.
+  // Financiaciones
   for (const f of fins) {
     const remaining = f.total_installments - f.paid_installments
     if (remaining <= 0) continue
-
     const start = parseISODate(f.next_charge_date)
     const startMonth = startOfMonth(start)
     for (let i = 0; i < remaining; i++) {
@@ -234,7 +302,39 @@ export function projectMonthlySpend(
   return buckets
 }
 
-/** Pretty-print a euro amount. */
+// =====================================================================
+// AGRUPACIONES POR CATEGORÍA
+// =====================================================================
+
+/**
+ * Coste mensual equivalente agrupado por categoría, solo de suscripciones ACTIVAS.
+ * Devuelve un map { categoryId: monto }.
+ */
+export function monthlySubsByCategory(subs: Subscription[]): Record<string, number> {
+  const out: Record<string, number> = {}
+  for (const s of activeSubscriptions(subs)) {
+    const cat = s.category || 'general'
+    out[cat] = (out[cat] ?? 0) + monthlyCostOfSubscription(s)
+  }
+  return out
+}
+
+/**
+ * Cuota mensual de financiaciones ACTIVAS agrupada por categoría.
+ */
+export function monthlyFinsByCategory(fins: Financing[]): Record<string, number> {
+  const out: Record<string, number> = {}
+  for (const f of activeFinancings(fins)) {
+    const cat = f.category || 'general'
+    out[cat] = (out[cat] ?? 0) + f.monthly_payment
+  }
+  return out
+}
+
+// =====================================================================
+// FORMATEADO
+// =====================================================================
+
 export function formatEuro(value: number, opts: { decimals?: number } = {}): string {
   const decimals = opts.decimals ?? 2
   return new Intl.NumberFormat('es-ES', {
@@ -245,7 +345,6 @@ export function formatEuro(value: number, opts: { decimals?: number } = {}): str
   }).format(value)
 }
 
-/** Pretty-print without decimals when whole, otherwise 2. */
 export function formatEuroSmart(value: number): string {
   const isWhole = Math.abs(value - Math.round(value)) < 0.005
   return formatEuro(value, { decimals: isWhole ? 0 : 2 })

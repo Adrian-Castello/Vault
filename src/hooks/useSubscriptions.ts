@@ -96,5 +96,57 @@ export function useSubscriptions() {
     [push],
   )
 
-  return { ...state, refetch, create, update, remove }
+  /** Marca como 'cancelled' sin borrarla. */
+  const cancel = useCallback(
+    async (id: string) => {
+      const patch = { status: 'cancelled' as const, cancelled_at: new Date().toISOString() }
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .update(patch)
+        .eq('id', id)
+        .select()
+        .single()
+      if (error) {
+        push(`Error al cancelar: ${error.message}`, 'error')
+        throw error
+      }
+      setState((s) => ({
+        ...s,
+        data: s.data
+          .map((x) => (x.id === id ? (data as Subscription) : x))
+          .sort((a, b) => a.next_charge_date.localeCompare(b.next_charge_date)),
+      }))
+      push('Suscripción cancelada', 'success')
+      return data as Subscription
+    },
+    [push],
+  )
+
+  /** Vuelve a estado 'active'. */
+  const reactivate = useCallback(
+    async (id: string) => {
+      const patch = { status: 'active' as const, cancelled_at: null }
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .update(patch)
+        .eq('id', id)
+        .select()
+        .single()
+      if (error) {
+        push(`Error al reactivar: ${error.message}`, 'error')
+        throw error
+      }
+      setState((s) => ({
+        ...s,
+        data: s.data
+          .map((x) => (x.id === id ? (data as Subscription) : x))
+          .sort((a, b) => a.next_charge_date.localeCompare(b.next_charge_date)),
+      }))
+      push('Suscripción reactivada', 'success')
+      return data as Subscription
+    },
+    [push],
+  )
+
+  return { ...state, refetch, create, update, remove, cancel, reactivate }
 }

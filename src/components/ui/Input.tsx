@@ -28,7 +28,7 @@ export function Field({ label, hint, error, children, required }: FieldProps) {
 }
 
 const inputBase =
-  'h-11 w-full rounded-xl bg-[var(--bg)] dark:bg-[var(--card)] border border-[var(--border)] px-3.5 text-[15px] text-ink placeholder:text-muted/70 transition-colors duration-200 outline-none focus:border-[var(--ink)]/40 focus:ring-2 focus:ring-[var(--ink)]/5'
+  'h-11 w-full rounded-xl bg-[var(--bg)] dark:bg-[var(--card)] border border-[var(--border)] px-3.5 text-base text-ink placeholder:text-muted/70 transition-colors duration-200 outline-none focus:border-[var(--ink)]/40 focus:ring-2 focus:ring-[var(--ink)]/5'
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   function Input({ className = '', ...rest }, ref) {

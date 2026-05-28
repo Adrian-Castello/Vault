@@ -11,7 +11,7 @@ import type { Subscription } from '../lib/types'
 import type { AppOutletContext } from '../App'
 
 export function SubscriptionsPage() {
-  const { subscriptions, modal, setModal } = useOutletContext<AppOutletContext>()
+  const { subscriptions, modal, setModal, openSettings } = useOutletContext<AppOutletContext>()
   const [editing, setEditing] = useState<Subscription | null>(null)
 
   const total = totalMonthlySubscriptions(subscriptions.data)
@@ -35,6 +35,7 @@ export function SubscriptionsPage() {
             </span>
           </span>
         }
+        onOpenSettings={openSettings}
       />
 
       <SubscriptionList
@@ -59,6 +60,20 @@ export function SubscriptionsPage() {
           editing
             ? async () => {
                 await subscriptions.remove(editing.id)
+              }
+            : undefined
+        }
+        onCancel={
+          editing
+            ? async () => {
+                await subscriptions.cancel(editing.id)
+              }
+            : undefined
+        }
+        onReactivate={
+          editing
+            ? async () => {
+                await subscriptions.reactivate(editing.id)
               }
             : undefined
         }

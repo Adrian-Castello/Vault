@@ -3,9 +3,10 @@ import { Trash2 } from 'lucide-react'
 import type { Financing, FinancingInput } from '../../lib/types'
 import { Modal } from '../ui/Modal'
 import { Button } from '../ui/Button'
-import { Field, Input } from '../ui/Input'
+import { Field, Input, Select } from '../ui/Input'
 import { EmojiPicker } from '../ui/EmojiPicker'
 import { addMonths, formatFullDate, parseISODate, toISODate } from '../../lib/dates'
+import { useCategories, findCategory } from '../../lib/categories'
 
 interface Props {
   open: boolean
@@ -23,6 +24,7 @@ interface FormState {
   total_installments: string
   paid_installments: string
   next_charge_date: string
+  category: string
 }
 
 function todayISO() {
@@ -39,6 +41,7 @@ function initialFromExisting(f: Financing | null | undefined): FormState {
       total_installments: '',
       paid_installments: '0',
       next_charge_date: todayISO(),
+      category: 'general',
     }
   }
   return {
@@ -49,6 +52,7 @@ function initialFromExisting(f: Financing | null | undefined): FormState {
     total_installments: String(f.total_installments),
     paid_installments: String(f.paid_installments),
     next_charge_date: f.next_charge_date,
+    category: f.category || 'general',
   }
 }
 
@@ -73,6 +77,7 @@ export function FinancingForm({ open, onClose, existing, onSubmit, onDelete }: P
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
   const [submitting, setSubmitting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const { categories } = useCategories()
 
   useEffect(() => {
     if (open) {
@@ -123,6 +128,7 @@ export function FinancingForm({ open, onClose, existing, onSubmit, onDelete }: P
         paid_installments: parseInt(state.paid_installments, 10),
         next_charge_date: state.next_charge_date,
         end_date: end,
+        category: state.category,
       })
       onClose()
     } catch {
@@ -270,6 +276,17 @@ export function FinancingForm({ open, onClose, existing, onSubmit, onDelete }: P
           />
         </Field>
 
+        <Field label="Categoría">
+          <Select
+            value={state.category}
+            onChange={(e) => setState((s) => ({ ...s, category: e.target.value }))}
+          >
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>{c.emoji} {c.label}</option>
+            ))}
+          </Select>
+        </Field>
+
         {endDate && (
           <div className="rounded-xl border border-dashed border-subtle bg-[var(--bg)] dark:bg-[var(--bg)] px-4 py-3 flex items-center justify-between">
             <span className="text-xs uppercase tracking-wider font-medium text-muted">
@@ -280,6 +297,27 @@ export function FinancingForm({ open, onClose, existing, onSubmit, onDelete }: P
             </span>
           </div>
         )}
+
+        {/* Indicador de categoría */}
+        {(() => {
+          const cat = findCategory(categories, state.category)
+          return (
+            <div
+              className="rounded-xl border border-dashed border-subtle px-4 py-3 flex items-center gap-3 text-sm"
+              style={{ background: `${cat.color}10` }}
+            >
+              <span
+                className="h-8 w-8 rounded-lg flex items-center justify-center text-lg shrink-0"
+                style={{ background: `${cat.color}22`, color: cat.color }}
+              >
+                {cat.emoji}
+              </span>
+              <span className="text-muted">
+                Categoría: <span className="text-ink font-medium">{cat.label}</span>
+              </span>
+            </div>
+          )
+        })()}
       </form>
     </Modal>
   )

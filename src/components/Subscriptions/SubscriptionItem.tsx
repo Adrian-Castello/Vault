@@ -12,6 +12,7 @@ interface Props {
 const cycleLabel: Record<Subscription['billing_cycle'], string> = {
   monthly: 'Mensual',
   quarterly: 'Trimestral',
+  semiannual: 'Semestral',
   yearly: 'Anual',
 }
 

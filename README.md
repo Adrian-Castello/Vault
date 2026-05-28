@@ -1,4 +1,4 @@
-# Vault — Suscripciones & Financiaciones
+# Vault — Suscripciones & Financiaciones 
 
 Dashboard responsive para trackear suscripciones recurrentes y financiaciones a plazos sin intereses. Despliegue en GitHub Pages, persistencia en Supabase.
 

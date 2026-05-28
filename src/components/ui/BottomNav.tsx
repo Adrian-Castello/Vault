@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Repeat, Wallet, Plus } from 'lucide-react'
+import { LayoutDashboard, Repeat, Wallet, Plus, Settings } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 
 interface BottomNavProps {
@@ -109,8 +109,8 @@ export function BottomNav({ onAddSubscription, onAddFinancing, onOpenSettings }:
         </li>
 
         {/* Botón + central destacado */}
-        <li className="flex justify-center items-start">
-          <div className="relative -mt-7">
+        <li className="flex justify-center items-center">
+          <div className="relative">
             {/* Halo difuminado detrás */}
             <div
               className="absolute inset-0 rounded-full blur-md opacity-50 pointer-events-none"
@@ -122,11 +122,11 @@ export function BottomNav({ onAddSubscription, onAddFinancing, onOpenSettings }:
               onClick={handleAddClick}
               aria-label="Añadir"
               aria-expanded={menuOpen}
-              className="relative h-13 w-13 rounded-full text-white shadow-xl flex items-center justify-center transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ink)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--card)]"
+              className="relative rounded-full text-white shadow-lg flex items-center justify-center transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ink)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--card)]"
               style={{
                 background: 'linear-gradient(135deg, var(--mint), var(--violet))',
-                height: '3.25rem',
-                width: '3.25rem',
+                height: '2.5rem',
+                width: '2.5rem',
               }}
             >
               <motion.span
@@ -134,7 +134,7 @@ export function BottomNav({ onAddSubscription, onAddFinancing, onOpenSettings }:
                 transition={{ duration: 0.22 }}
                 className="flex"
               >
-                <Plus className="h-6 w-6" strokeWidth={2.6} />
+                <Plus className="h-5 w-5" strokeWidth={2.6} />
               </motion.span>
             </motion.button>
           </div>
@@ -150,12 +150,12 @@ export function BottomNav({ onAddSubscription, onAddFinancing, onOpenSettings }:
           <button
             type="button"
             onClick={onOpenSettings}
-            className="w-full flex flex-col items-center justify-center gap-1 py-2.5 text-muted hover:text-ink transition-colors"
+            className="w-full flex flex-col items-center justify-center gap-1 py-2.5 text-[10.5px] font-medium text-muted hover:text-ink transition-colors"
           >
-            <span className="relative flex h-7 items-center justify-center text-[13px] font-medium tracking-tight">
-              Ajustes
+            <span className="relative flex h-7 w-12 items-center justify-center rounded-full">
+              <Settings className="h-[18px] w-[18px]" strokeWidth={2} />
             </span>
-            <span className="text-[10.5px] opacity-0 select-none" aria-hidden>·</span>
+            <span className="tracking-tight">Ajustes</span>
           </button>
         </li>
       </ul>

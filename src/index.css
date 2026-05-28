@@ -130,7 +130,8 @@ input[type='number'] {
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }
 
-/* Safe area top (for PWA mode in iOS — avoids the status bar overlap) */
+/* Safe area top (for PWA mode in iOS — avoids the status bar overlap)
+   Adds a comfortable extra cushion so the header never feels glued to the bar. */
 .safe-top {
-  padding-top: max(env(safe-area-inset-top), 0px);
+  padding-top: calc(env(safe-area-inset-top, 0px) + 0.5rem);
 }

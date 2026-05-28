@@ -22,7 +22,7 @@ export function FloatingAddButton({
   }
 
   return (
-    <div className="fixed right-5 z-40 bottom-[calc(env(safe-area-inset-bottom)+72px)] md:bottom-8">
+    <div className="hidden md:block fixed right-5 z-40 bottom-8">
       <AnimatePresence>
         {open && context === 'dashboard' && (
           <motion.div

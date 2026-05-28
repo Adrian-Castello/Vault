@@ -6,25 +6,24 @@ import { AnimatePresence, motion } from 'framer-motion'
 interface BottomNavProps {
   onAddSubscription: () => void
   onAddFinancing: () => void
+  onOpenSettings: () => void
 }
 
-const items = [
+const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/suscripciones', label: 'Suscripciones', icon: Repeat, end: false },
   { to: '/financiaciones', label: 'Financiaciones', icon: Wallet, end: false },
 ]
 
-export function BottomNav({ onAddSubscription, onAddFinancing }: BottomNavProps) {
+export function BottomNav({ onAddSubscription, onAddFinancing, onOpenSettings }: BottomNavProps) {
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
 
-  // Cerrar el menú al cambiar de ruta
   useEffect(() => {
     setMenuOpen(false)
   }, [location.pathname])
 
-  // Cerrar si se pulsa fuera
   useEffect(() => {
     if (!menuOpen) return
     const onClick = (e: MouseEvent) => {
@@ -53,18 +52,12 @@ export function BottomNav({ onAddSubscription, onAddFinancing }: BottomNavProps)
     setMenuOpen((o) => !o)
   }
 
-  // Render: orden = Dashboard, Plus, Suscripciones, Financiaciones (4 columnas)
-  // pero queremos el + centrado entre los 3 items. Reordenamos:
-  // [Dashboard] [Suscripciones] [+] [Financiaciones]
-  // Así el + queda visualmente centrado entre subs y fins.
-  // Cambio: dejamos 4 columnas y el orden es:
-  // dashboard | subs | + | fins
   return (
     <nav
       ref={menuRef}
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-subtle bg-card/90 backdrop-blur-lg safe-bottom"
+      className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-subtle bg-card/90 backdrop-blur-xl safe-bottom"
     >
-      {/* Menú emergente desde el + */}
+      {/* Menú emergente (solo en Dashboard) */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -72,7 +65,7 @@ export function BottomNav({ onAddSubscription, onAddFinancing }: BottomNavProps)
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.96 }}
             transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 card p-1.5 min-w-[220px] shadow-xl"
+            className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 card p-1.5 min-w-[230px] shadow-2xl"
           >
             <button
               type="button"
@@ -104,39 +97,66 @@ export function BottomNav({ onAddSubscription, onAddFinancing }: BottomNavProps)
         )}
       </AnimatePresence>
 
-      <ul className="grid grid-cols-4 max-w-md mx-auto">
+      <ul className="grid grid-cols-5 max-w-md mx-auto">
         {/* Dashboard */}
         <li>
-          <NavTab to={items[0].to} label={items[0].label} icon={items[0].icon} end={items[0].end} />
+          <NavTab to={navItems[0].to} label={navItems[0].label} icon={navItems[0].icon} end={navItems[0].end} />
         </li>
 
         {/* Suscripciones */}
         <li>
-          <NavTab to={items[1].to} label={items[1].label} icon={items[1].icon} end={items[1].end} />
+          <NavTab to={navItems[1].to} label={navItems[1].label} icon={navItems[1].icon} end={navItems[1].end} />
         </li>
 
-        {/* Botón + central */}
-        <li className="flex justify-center items-center">
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={handleAddClick}
-            aria-label="Añadir"
-            aria-expanded={menuOpen}
-            className="h-12 w-12 -mt-5 rounded-full bg-[var(--ink)] text-[var(--bg)] shadow-lg flex items-center justify-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ink)]/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
-          >
-            <motion.span
-              animate={{ rotate: menuOpen ? 45 : 0 }}
-              transition={{ duration: 0.2 }}
-              className="flex"
+        {/* Botón + central destacado */}
+        <li className="flex justify-center items-start">
+          <div className="relative -mt-7">
+            {/* Halo difuminado detrás */}
+            <div
+              className="absolute inset-0 rounded-full blur-md opacity-50 pointer-events-none"
+              style={{ background: 'linear-gradient(135deg, var(--mint), var(--violet))' }}
+              aria-hidden
+            />
+            <motion.button
+              whileTap={{ scale: 0.88 }}
+              onClick={handleAddClick}
+              aria-label="Añadir"
+              aria-expanded={menuOpen}
+              className="relative h-13 w-13 rounded-full text-white shadow-xl flex items-center justify-center transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ink)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--card)]"
+              style={{
+                background: 'linear-gradient(135deg, var(--mint), var(--violet))',
+                height: '3.25rem',
+                width: '3.25rem',
+              }}
             >
-              <Plus className="h-5 w-5" strokeWidth={2.5} />
-            </motion.span>
-          </motion.button>
+              <motion.span
+                animate={{ rotate: menuOpen ? 135 : 0 }}
+                transition={{ duration: 0.22 }}
+                className="flex"
+              >
+                <Plus className="h-6 w-6" strokeWidth={2.6} />
+              </motion.span>
+            </motion.button>
+          </div>
         </li>
 
         {/* Financiaciones */}
         <li>
-          <NavTab to={items[2].to} label={items[2].label} icon={items[2].icon} end={items[2].end} />
+          <NavTab to={navItems[2].to} label={navItems[2].label} icon={navItems[2].icon} end={navItems[2].end} />
+        </li>
+
+        {/* Ajustes */}
+        <li>
+          <button
+            type="button"
+            onClick={onOpenSettings}
+            className="w-full flex flex-col items-center justify-center gap-1 py-2.5 text-muted hover:text-ink transition-colors"
+          >
+            <span className="relative flex h-7 items-center justify-center text-[13px] font-medium tracking-tight">
+              Ajustes
+            </span>
+            <span className="text-[10.5px] opacity-0 select-none" aria-hidden>·</span>
+          </button>
         </li>
       </ul>
     </nav>

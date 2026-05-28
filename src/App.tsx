@@ -58,6 +58,7 @@ function Shell() {
       <BottomNav
         onAddSubscription={() => setModal('subscription')}
         onAddFinancing={() => setModal('financing')}
+        onOpenSettings={() => setSettingsOpen(true)}
       />
 
       <FloatingAddButton

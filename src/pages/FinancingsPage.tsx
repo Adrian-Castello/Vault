@@ -12,7 +12,7 @@ import type { Financing } from '../lib/types'
 import type { AppOutletContext } from '../App'
 
 export function FinancingsPage() {
-  const { financings, modal, setModal, openSettings } = useOutletContext<AppOutletContext>()
+  const { financings, modal, setModal } = useOutletContext<AppOutletContext>()
   const [editing, setEditing] = useState<Financing | null>(null)
 
   const monthly = totalMonthlyFinancings(financings.data)
@@ -46,7 +46,7 @@ export function FinancingsPage() {
             </span>
           </span>
         }
-        onOpenSettings={openSettings}
+
       />
 
       <FinancingList

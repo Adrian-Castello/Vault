@@ -8,7 +8,7 @@ import { useUserName } from '../hooks/useUserName'
 import type { AppOutletContext } from '../App'
 
 export function DashboardPage() {
-  const { subscriptions, financings, openSettings } = useOutletContext<AppOutletContext>()
+  const { subscriptions, financings } = useOutletContext<AppOutletContext>()
   const { name } = useUserName()
   const loading = subscriptions.loading || financings.loading
 
@@ -36,7 +36,7 @@ export function DashboardPage() {
             .
           </span>
         }
-        onOpenSettings={openSettings}
+
       />
 
       {loading ? (

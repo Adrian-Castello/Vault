@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pencil, Plus, Trash2, RotateCcw, Check, AlertTriangle } from 'lucide-react'
+import { Pencil, Plus, Trash2, RotateCcw, Check } from 'lucide-react'
 import { Modal } from './Modal'
 import { Button } from './Button'
 import { Field, Input } from './Input'
@@ -90,23 +90,24 @@ function CategoriesSection() {
   const { push } = useToast()
   const [editing, setEditing] = useState<Category | null>(null)
   const [creating, setCreating] = useState(false)
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<Category | null>(null)
   const [deleting, setDeleting] = useState(false)
 
-  const handleDelete = async (cat: Category) => {
+  const handleConfirmDelete = async () => {
+    if (!pendingDelete) return
     setDeleting(true)
     try {
       // Reasignar items que la usaban a 'general' antes de borrar la categoría
       const [subsRes, finsRes] = await Promise.all([
-        supabase.from('subscriptions').update({ category: 'general' }).eq('category', cat.id),
-        supabase.from('financings').update({ category: 'general' }).eq('category', cat.id),
+        supabase.from('subscriptions').update({ category: 'general' }).eq('category', pendingDelete.id),
+        supabase.from('financings').update({ category: 'general' }).eq('category', pendingDelete.id),
       ])
       if (subsRes.error) throw subsRes.error
       if (finsRes.error) throw finsRes.error
 
-      remove(cat.id)
-      push(`Categoría "${cat.label}" eliminada`, 'success')
-      setConfirmDeleteId(null)
+      remove(pendingDelete.id)
+      push(`Categoría "${pendingDelete.label}" eliminada`, 'success')
+      setPendingDelete(null)
     } catch (err) {
       push(`Error al eliminar: ${(err as Error).message}`, 'error')
     } finally {
@@ -138,87 +139,50 @@ function CategoriesSection() {
       </p>
 
       <ul className="space-y-1.5 mb-4">
-        {categories.map((cat) => {
-          const isConfirming = confirmDeleteId === cat.id
-          return (
-            <li
-              key={cat.id}
-              className={`flex items-center gap-3 px-3 py-2 rounded-xl bg-[var(--bg)] border transition-colors ${
-                isConfirming ? 'border-alert/60' : 'border-subtle'
-              } group`}
+        {categories.map((cat) => (
+          <li
+            key={cat.id}
+            className="flex items-center gap-3 px-3 py-2 rounded-xl bg-[var(--bg)] border border-subtle"
+          >
+            <span
+              className="h-8 w-8 rounded-lg flex items-center justify-center text-lg shrink-0"
+              style={{ background: `${cat.color}22`, color: cat.color }}
             >
-              <span
-                className="h-8 w-8 rounded-lg flex items-center justify-center text-lg shrink-0"
-                style={{ background: `${cat.color}22`, color: cat.color }}
-              >
-                {cat.emoji}
-              </span>
+              {cat.emoji}
+            </span>
 
-              {isConfirming ? (
-                <div className="flex-1 flex items-center gap-2 min-w-0">
-                  <AlertTriangle className="h-3.5 w-3.5 text-alert shrink-0" />
-                  <span className="text-xs text-ink truncate">
-                    ¿Eliminar "{cat.label}"? Los items pasarán a General.
-                  </span>
-                </div>
-              ) : (
-                <span className="flex-1 text-sm font-medium text-ink truncate">
-                  {cat.label}
-                  {cat.builtin && cat.id !== 'general' && (
-                    <span className="ml-2 text-[10px] text-muted font-normal">predefinida</span>
-                  )}
-                  {cat.id === 'general' && (
-                    <span className="ml-2 text-[10px] text-muted font-normal">por defecto</span>
-                  )}
-                </span>
+            <span className="flex-1 text-sm font-medium text-ink truncate">
+              {cat.label}
+              {cat.builtin && cat.id !== 'general' && (
+                <span className="ml-2 text-[10px] text-muted font-normal">predefinida</span>
               )}
+              {cat.id === 'general' && (
+                <span className="ml-2 text-[10px] text-muted font-normal">por defecto</span>
+              )}
+            </span>
 
-              {cat.id !== 'general' && (
-                <div className="flex items-center gap-1 shrink-0">
-                  {isConfirming ? (
-                    <>
-                      <button
-                        type="button"
-                        disabled={deleting}
-                        onClick={() => setConfirmDeleteId(null)}
-                        className="px-2 py-1 text-xs rounded-md hover:bg-[var(--border)]/50 text-muted hover:text-ink transition-colors"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="button"
-                        disabled={deleting}
-                        onClick={() => handleDelete(cat)}
-                        className="px-2 py-1 text-xs rounded-md bg-alert text-white hover:opacity-90 transition-opacity disabled:opacity-50"
-                      >
-                        {deleting ? 'Eliminando…' : 'Eliminar'}
-                      </button>
-                    </>
-                  ) : (
-                    <div className="flex items-center gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
-                      <button
-                        type="button"
-                        onClick={() => setEditing(cat)}
-                        className="p-1.5 rounded-md hover:bg-[var(--border)]/50 text-muted hover:text-ink transition-colors"
-                        aria-label="Editar"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDeleteId(cat.id)}
-                        className="p-1.5 rounded-md hover:bg-alert/15 text-muted hover:text-alert transition-colors"
-                        aria-label="Eliminar"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </li>
-          )
-        })}
+            {cat.id !== 'general' && (
+              <div className="flex items-center gap-0.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setEditing(cat)}
+                  className="p-2 rounded-md hover:bg-[var(--border)]/50 text-muted hover:text-ink transition-colors"
+                  aria-label={`Editar ${cat.label}`}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPendingDelete(cat)}
+                  className="p-2 rounded-md hover:bg-alert/15 text-muted hover:text-alert transition-colors"
+                  aria-label={`Eliminar ${cat.label}`}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
+          </li>
+        ))}
       </ul>
 
       <Button
@@ -253,6 +217,16 @@ function CategoriesSection() {
               push((err as Error).message, 'error')
             }
           }}
+        />
+      )}
+
+      {/* Confirmación de borrado en modal centrado */}
+      {pendingDelete && (
+        <ConfirmDeleteModal
+          category={pendingDelete}
+          deleting={deleting}
+          onCancel={() => setPendingDelete(null)}
+          onConfirm={handleConfirmDelete}
         />
       )}
     </section>
@@ -342,6 +316,55 @@ function CategoryEditor({ existing, onClose, onSubmit }: EditorProps) {
             ))}
           </div>
         </Field>
+      </div>
+    </Modal>
+  )
+}
+/* -------------------------------------------------------------------- */
+/* Sub-modal: confirmación de borrado de una categoría                  */
+/* -------------------------------------------------------------------- */
+interface ConfirmDeleteProps {
+  category: Category
+  deleting: boolean
+  onCancel: () => void
+  onConfirm: () => void
+}
+
+function ConfirmDeleteModal({ category, deleting, onCancel, onConfirm }: ConfirmDeleteProps) {
+  return (
+    <Modal
+      open
+      onClose={onCancel}
+      title="Eliminar categoría"
+      footer={
+        <div className="flex items-center justify-end gap-2">
+          <Button variant="ghost" onClick={onCancel} disabled={deleting}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={onConfirm} disabled={deleting}>
+            {deleting ? 'Eliminando…' : 'Eliminar'}
+          </Button>
+        </div>
+      }
+    >
+      <div className="py-2 space-y-3">
+        <div
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-subtle"
+          style={{ background: `${category.color}10` }}
+        >
+          <span
+            className="h-9 w-9 rounded-lg flex items-center justify-center text-lg shrink-0"
+            style={{ background: `${category.color}22`, color: category.color }}
+          >
+            {category.emoji}
+          </span>
+          <span className="text-sm font-medium text-ink">{category.label}</span>
+        </div>
+        <p className="text-sm text-muted leading-relaxed">
+          Las suscripciones y financiaciones que usaban esta categoría pasarán
+          automáticamente a <span className="text-ink font-medium">General</span>.
+        </p>
+        <p className="text-xs text-muted">Esta acción no se puede deshacer.</p>
       </div>
     </Modal>
   )

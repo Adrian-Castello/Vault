@@ -1,7 +1,6 @@
 import { useOutletContext } from 'react-router-dom'
 import { Upcoming7Days } from '../components/Dashboard/Upcoming7Days'
 import { KpiGrid } from '../components/Dashboard/KpiGrid'
-import { RenewalCalendar } from '../components/Dashboard/RenewalCalendar'
 import { CategoryDonut } from '../components/Dashboard/CategoryDonut'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Skeleton } from '../components/ui/Skeleton'
@@ -48,7 +47,6 @@ export function DashboardPage() {
             <Skeleton className="h-[120px]" />
             <Skeleton className="h-[120px]" />
           </div>
-          <Skeleton className="h-[360px]" />
           <Skeleton className="h-[280px]" />
         </div>
       ) : (
@@ -58,10 +56,6 @@ export function DashboardPage() {
             financings={financings.data}
           />
           <KpiGrid
-            subscriptions={subscriptions.data}
-            financings={financings.data}
-          />
-          <RenewalCalendar
             subscriptions={subscriptions.data}
             financings={financings.data}
           />

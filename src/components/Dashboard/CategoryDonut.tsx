@@ -31,8 +31,9 @@ export function CategoryDonut({ subscriptions, financings }: Props) {
   const [mode, setMode] = useState<Mode>('both')
 
   const { slices, total, allGeneral } = useMemo(() => {
-    const subsMap = monthlySubsByCategory(subscriptions)
-    const finsMap = monthlyFinsByCategory(financings)
+    const knownIds = new Set(categories.map((c) => c.id))
+    const subsMap = monthlySubsByCategory(subscriptions, knownIds)
+    const finsMap = monthlyFinsByCategory(financings, knownIds)
 
     // Combinar según modo
     const combined: Record<string, number> = {}

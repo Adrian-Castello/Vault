@@ -392,11 +392,16 @@ export function chargesInMonth(
 /**
  * Coste mensual equivalente agrupado por categoría, solo de suscripciones ACTIVAS.
  * Devuelve un map { categoryId: monto }.
+ * Normaliza valores vacíos / desconocidos a 'general'.
  */
-export function monthlySubsByCategory(subs: Subscription[]): Record<string, number> {
+export function monthlySubsByCategory(
+  subs: Subscription[],
+  knownCategoryIds?: Set<string>,
+): Record<string, number> {
   const out: Record<string, number> = {}
   for (const s of activeSubscriptions(subs)) {
-    const cat = s.category || 'general'
+    const raw = (s.category || '').trim().toLowerCase()
+    const cat = !raw || (knownCategoryIds && !knownCategoryIds.has(raw)) ? 'general' : raw
     out[cat] = (out[cat] ?? 0) + monthlyCostOfSubscription(s)
   }
   return out
@@ -404,11 +409,16 @@ export function monthlySubsByCategory(subs: Subscription[]): Record<string, numb
 
 /**
  * Cuota mensual de financiaciones ACTIVAS agrupada por categoría.
+ * Normaliza valores vacíos / desconocidos a 'general'.
  */
-export function monthlyFinsByCategory(fins: Financing[]): Record<string, number> {
+export function monthlyFinsByCategory(
+  fins: Financing[],
+  knownCategoryIds?: Set<string>,
+): Record<string, number> {
   const out: Record<string, number> = {}
   for (const f of activeFinancings(fins)) {
-    const cat = f.category || 'general'
+    const raw = (f.category || '').trim().toLowerCase()
+    const cat = !raw || (knownCategoryIds && !knownCategoryIds.has(raw)) ? 'general' : raw
     out[cat] = (out[cat] ?? 0) + f.monthly_payment
   }
   return out

@@ -9,6 +9,7 @@ import {
   parseISODate,
   startOfToday,
 } from '../../lib/dates'
+import { findCategory, useCategories } from '../../lib/categories'
 
 interface Props {
   financing: Financing
@@ -29,13 +30,18 @@ export function FinancingItem({ financing, onClick, index = 0 }: Props) {
   const diff = daysBetween(today, target)
   const isSoon = !isFinished && diff >= 0 && diff < 3
 
+  const { categories } = useCategories()
+  const category = findCategory(categories, financing.category)
+
+  const opacityClass = isFinished ? 'opacity-70' : ''
+
   return (
     <motion.button
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.22, delay: index * 0.03 }}
       onClick={onClick}
-      className="w-full card card-hoverable p-4 text-left"
+      className={`w-full card card-hoverable p-4 text-left ${opacityClass}`}
     >
       <div className="flex items-start gap-3.5">
         <span className="h-12 w-12 rounded-xl bg-[var(--bg)] dark:bg-[var(--card)] border border-subtle flex items-center justify-center text-2xl shrink-0">
@@ -43,40 +49,52 @@ export function FinancingItem({ financing, onClick, index = 0 }: Props) {
         </span>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
+          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
             <span className="font-medium text-ink truncate">{financing.name}</span>
-            {isLast && (
+            {isLast && !isFinished && (
               <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-violet/15 text-violet-light border border-violet/30 inline-flex items-center gap-1">
                 <Sparkles className="h-2.5 w-2.5" /> Última cuota
               </span>
             )}
             {isFinished && (
               <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-mint/15 text-mint border border-mint/25">
-                Pagado 🎉
+                Completada 🎉
               </span>
             )}
           </div>
-          <div
-            className={`text-xs tabular-nums ${
-              isSoon ? 'text-warm font-medium' : 'text-muted'
-            }`}
-          >
-            {isFinished ? (
-              <>Fin: {formatFullDate(financing.end_date)}</>
-            ) : (
-              <>
-                {isSoon && (
-                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-warm mr-1.5 align-middle animate-pulse-soft" />
-                )}
-                Próximo: {formatRelativeDate(financing.next_charge_date)} · Fin{' '}
-                {formatFullDate(financing.end_date)}
-              </>
+
+          <div className="flex items-center gap-2 flex-wrap text-xs">
+            {/* Chip de categoría */}
+            {category.id !== 'general' && (
+              <span
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10.5px] font-medium"
+                style={{ background: `${category.color}18`, color: category.color }}
+              >
+                <span className="text-[11px] leading-none">{category.emoji}</span>
+                {category.label}
+              </span>
             )}
+            <span
+              className={`tabular-nums ${
+                isSoon ? 'text-warm font-medium' : 'text-muted'
+              }`}
+            >
+              {isFinished ? (
+                <>Finalizó el {formatFullDate(financing.end_date)}</>
+              ) : (
+                <>
+                  {isSoon && (
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-warm mr-1.5 align-middle animate-pulse-soft" />
+                  )}
+                  Próximo: {formatRelativeDate(financing.next_charge_date)}
+                </>
+              )}
+            </span>
           </div>
         </div>
 
         <div className="text-right shrink-0">
-          <div className="font-semibold text-ink tabular-nums">
+          <div className={`font-semibold tabular-nums ${isFinished ? 'text-muted' : 'text-ink'}`}>
             {formatEuroSmart(financing.monthly_payment)}
           </div>
           <div className="text-[11px] text-muted mt-0.5">/ mes</div>
@@ -92,7 +110,7 @@ export function FinancingItem({ financing, onClick, index = 0 }: Props) {
             {Math.round(progress)}%
           </span>
         </div>
-        <div className="h-1.5 rounded-full bg-[var(--border)]/60 overflow-hidden">
+        <div className="h-2 rounded-full bg-[var(--border)]/60 overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}

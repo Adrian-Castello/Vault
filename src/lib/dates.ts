@@ -82,3 +82,14 @@ export function formatFullDate(iso: string): string {
   const d = parseISODate(iso)
   return `${d.getDate()} ${MONTHS_ES[d.getMonth()]} ${d.getFullYear()}`
 }
+
+/**
+ * Months between two dates, approximated by calendar months + partial.
+ * Returns a positive integer for future, negative for past.
+ */
+export function monthsBetween(a: Date, b: Date): number {
+  const years = b.getFullYear() - a.getFullYear()
+  const months = b.getMonth() - a.getMonth()
+  const dayAdjust = b.getDate() >= a.getDate() ? 0 : -1
+  return years * 12 + months + dayAdjust
+}

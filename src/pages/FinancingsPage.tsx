@@ -2,21 +2,14 @@ import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { FinancingList } from '../components/Financings/FinancingList'
 import { FinancingForm } from '../components/Financings/FinancingForm'
+import { FinancingsKpis } from '../components/Financings/FinancingsKpis'
 import { PageHeader } from '../components/ui/PageHeader'
-import {
-  formatEuroSmart,
-  totalMonthlyFinancings,
-  totalRemainingDebt,
-} from '../lib/calculations'
 import type { Financing } from '../lib/types'
 import type { AppOutletContext } from '../App'
 
 export function FinancingsPage() {
   const { financings, modal, setModal } = useOutletContext<AppOutletContext>()
   const [editing, setEditing] = useState<Financing | null>(null)
-
-  const monthly = totalMonthlyFinancings(financings.data)
-  const debt = totalRemainingDebt(financings.data)
 
   const open = modal === 'financing' || editing !== null
 
@@ -30,24 +23,15 @@ export function FinancingsPage() {
       <PageHeader
         title="Financiaciones"
         subtitle={
-          <span className="flex flex-wrap gap-x-3 gap-y-1">
-            <span>
-              Cuotas activas/mes:{' '}
-              <span className="text-ink font-medium tabular-nums">
-                {formatEuroSmart(monthly)}
-              </span>
-            </span>
-            <span className="hidden sm:inline text-muted">·</span>
-            <span>
-              Deuda pendiente:{' '}
-              <span className="text-ink font-medium tabular-nums">
-                {formatEuroSmart(debt)}
-              </span>
-            </span>
+          <span className="text-muted">
+            Gestiona tus pagos a plazos y planifica tu camino libre de deuda.
           </span>
         }
-
       />
+
+      {!financings.loading && financings.data.length > 0 && (
+        <FinancingsKpis items={financings.data} />
+      )}
 
       <FinancingList
         items={financings.data}

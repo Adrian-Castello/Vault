@@ -15,6 +15,7 @@ export interface Subscription {
   status: SubscriptionStatus
   trial_end_date?: string | null   // solo cuando status='trial'
   cancelled_at?: string | null     // timestamptz cuando se canceló
+  payment_method?: string | null   // banco/tarjeta donde se carga (texto libre)
   created_at?: string
 }
 
@@ -29,6 +30,7 @@ export interface Financing {
   next_charge_date: string // ISO date (YYYY-MM-DD)
   end_date: string // ISO date (YYYY-MM-DD)
   category: string // id de la categoría
+  payment_method?: string | null // banco/tarjeta donde se carga (texto libre)
   created_at?: string
 }
 

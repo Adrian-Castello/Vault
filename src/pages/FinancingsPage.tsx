@@ -23,9 +23,7 @@ export function FinancingsPage() {
       <PageHeader
         title="Financiaciones"
         subtitle={
-          <span className="text-muted">
-            Gestiona tus pagos a plazos y planifica tu camino libre de deuda.
-          </span>
+          <span className="text-muted">Tus pagos a plazos y tu camino libre de deuda.</span>
         }
       />
 

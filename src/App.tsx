@@ -50,7 +50,7 @@ function Shell() {
   return (
     <div className="min-h-full flex bg-surface">
       <Sidebar onOpenSettings={() => setSettingsOpen(true)} />
-      <main className="flex-1 min-w-0 pb-28 md:pb-10 px-4 sm:px-6 md:px-10 pt-8 md:pt-8 max-w-5xl mx-auto w-full safe-top">
+      <main className="flex-1 min-w-0 pb-28 md:pb-10 px-4 sm:px-6 md:px-10 pt-8 md:pt-8 max-w-6xl mx-auto w-full safe-top">
         {!isSupabaseConfigured && <ConfigBanner />}
         <Outlet context={contextValue} />
       </main>

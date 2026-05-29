@@ -23,9 +23,7 @@ export function SubscriptionsPage() {
       <PageHeader
         title="Suscripciones"
         subtitle={
-          <span className="text-muted">
-            Gestiona todos tus cobros recurrentes en un solo sitio.
-          </span>
+          <span className="text-muted">Tus cobros recurrentes, organizados.</span>
         }
       />
 
@@ -55,13 +53,6 @@ export function SubscriptionsPage() {
           editing
             ? async () => {
                 await subscriptions.remove(editing.id)
-              }
-            : undefined
-        }
-        onCancel={
-          editing
-            ? async () => {
-                await subscriptions.cancel(editing.id)
               }
             : undefined
         }

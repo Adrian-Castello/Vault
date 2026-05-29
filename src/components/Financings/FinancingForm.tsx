@@ -26,6 +26,7 @@ interface FormState {
   paid_installments: string
   next_charge_date: string
   category: string
+  payment_method: string
 }
 
 function todayISO() {
@@ -43,6 +44,7 @@ function initialFromExisting(f: Financing | null | undefined): FormState {
       paid_installments: '0',
       next_charge_date: todayISO(),
       category: 'general',
+      payment_method: '',
     }
   }
   return {
@@ -54,6 +56,7 @@ function initialFromExisting(f: Financing | null | undefined): FormState {
     paid_installments: String(f.paid_installments),
     next_charge_date: f.next_charge_date,
     category: f.category || 'general',
+    payment_method: f.payment_method || '',
   }
 }
 
@@ -133,6 +136,7 @@ export function FinancingForm({ open, onClose, existing, onSubmit, onDelete }: P
         next_charge_date: state.next_charge_date,
         end_date: end,
         category: state.category,
+        payment_method: state.payment_method.trim() || null,
       })
       onClose()
     } catch {
@@ -208,7 +212,9 @@ export function FinancingForm({ open, onClose, existing, onSubmit, onDelete }: P
                 value={state.name}
                 onChange={(e) => setState((s) => ({ ...s, name: e.target.value }))}
                 placeholder="iPhone, sofá…"
-                autoFocus
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
               />
             </Field>
           </div>
@@ -289,6 +295,18 @@ export function FinancingForm({ open, onClose, existing, onSubmit, onDelete }: P
               <option key={c.id} value={c.id}>{c.emoji} {c.label}</option>
             ))}
           </Select>
+        </Field>
+
+        <Field label="Método de pago" hint="Para saber dónde ir si quieres cancelarlo">
+          <Input
+            value={state.payment_method}
+            onChange={(e) => setState((s) => ({ ...s, payment_method: e.target.value }))}
+            placeholder="BBVA, Revolut, PayPal…"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            maxLength={60}
+          />
         </Field>
 
         {endDate && (

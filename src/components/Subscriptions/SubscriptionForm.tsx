@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Trash2, Ban, RefreshCw } from 'lucide-react'
+import { Trash2, RefreshCw } from 'lucide-react'
 import type { Subscription, SubscriptionInput, SubscriptionStatus } from '../../lib/types'
 import { Modal } from '../ui/Modal'
 import { Button } from '../ui/Button'
@@ -28,6 +28,7 @@ interface FormState {
   category: string
   status: SubscriptionStatus
   trial_end_date: string
+  payment_method: string
 }
 
 function todayISO() {
@@ -45,6 +46,7 @@ function initialFromExisting(s: Subscription | null | undefined): FormState {
       category: 'general',
       status: 'active',
       trial_end_date: '',
+      payment_method: '',
     }
   }
   return {
@@ -56,6 +58,7 @@ function initialFromExisting(s: Subscription | null | undefined): FormState {
     category: s.category || 'general',
     status: s.status || 'active',
     trial_end_date: s.trial_end_date || '',
+    payment_method: s.payment_method || '',
   }
 }
 
@@ -115,6 +118,7 @@ export function SubscriptionForm({
         status: state.status,
         trial_end_date: state.status === 'trial' ? state.trial_end_date : null,
         cancelled_at: existing?.cancelled_at ?? null,
+        payment_method: state.payment_method.trim() || null,
       })
       onClose()
     } catch {
@@ -133,17 +137,6 @@ export function SubscriptionForm({
     setSubmitting(true)
     try {
       await onDelete()
-      onClose()
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const handleCancel = async () => {
-    if (!onCancel) return
-    setSubmitting(true)
-    try {
-      await onCancel()
       onClose()
     } finally {
       setSubmitting(false)
@@ -181,18 +174,6 @@ export function SubscriptionForm({
               icon={<RefreshCw className="h-4 w-4" />}
             >
               Reactivar
-            </Button>
-          )}
-          {isEdit && !isCancelled && onCancel && (
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={handleCancel}
-              disabled={submitting}
-              className="mr-auto text-warm"
-              icon={<Ban className="h-4 w-4" />}
-            >
-              Cancelar suscripción
             </Button>
           )}
           {isEdit && onDelete && (
@@ -235,7 +216,9 @@ export function SubscriptionForm({
                 value={state.name}
                 onChange={(e) => setState((s) => ({ ...s, name: e.target.value }))}
                 placeholder="Netflix, Spotify…"
-                autoFocus
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
               />
             </Field>
           </div>
@@ -320,6 +303,18 @@ export function SubscriptionForm({
             />
           </Field>
         )}
+
+        <Field label="Método de pago" hint="Para saber dónde ir si quieres cancelarlo">
+          <Input
+            value={state.payment_method}
+            onChange={(e) => setState((s) => ({ ...s, payment_method: e.target.value }))}
+            placeholder="BBVA, Revolut, PayPal…"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            maxLength={60}
+          />
+        </Field>
 
         {/* Indicador visual de categoría seleccionada */}
         <div

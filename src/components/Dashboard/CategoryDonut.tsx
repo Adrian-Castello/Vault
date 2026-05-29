@@ -86,23 +86,32 @@ export function CategoryDonut({ subscriptions, financings }: Props) {
           <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted mb-1">
             Gasto por categoría
           </h2>
-          <p className="text-[12px] text-muted">Coste mensual equivalente</p>
+          <p className="text-[12px] text-muted">
+            <span className="text-ink/80 font-medium">Tu mes</span> en un vistazo
+          </p>
         </div>
         <div className="inline-flex p-0.5 rounded-lg bg-[var(--bg)] border border-subtle">
-          {(['both', 'subs', 'fins'] as Mode[]).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMode(m)}
-              className={`px-2.5 py-1 text-[11.5px] font-medium rounded-md transition-colors ${
-                mode === m
-                  ? 'bg-[var(--ink)] text-[var(--bg)]'
-                  : 'text-muted hover:text-ink'
-              }`}
-            >
-              {m === 'both' ? 'Ambos' : m === 'subs' ? 'Subs' : 'Financ.'}
-            </button>
-          ))}
+          {(['both', 'subs', 'fins'] as Mode[]).map((m) => {
+            const isActive = mode === m
+            const activeBg =
+              m === 'both'
+                ? 'bg-gradient-to-r from-mint to-violet text-white'
+                : m === 'subs'
+                  ? 'bg-mint text-white'
+                  : 'bg-violet text-white'
+            return (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                className={`px-2.5 py-1 text-[11.5px] font-medium rounded-md transition-all ${
+                  isActive ? activeBg : 'text-muted hover:text-ink'
+                }`}
+              >
+                {m === 'both' ? 'Ambos' : m === 'subs' ? 'Subs' : 'Financ.'}
+              </button>
+            )
+          })}
         </div>
       </div>
 

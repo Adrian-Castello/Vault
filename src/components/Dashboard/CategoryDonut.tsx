@@ -79,11 +79,11 @@ export function CategoryDonut({ subscriptions, financings }: Props) {
   }, [subscriptions, financings, mode, categories])
 
   return (
-    <section className="card p-5">
+    <section className="card p-5 md:p-7">
       {/* Cabecera + toggle */}
       <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
         <div>
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted mb-1">
+          <h2 className="text-[11px] font-bold uppercase tracking-[0.18em] text-ink/70 mb-1">
             Gasto por categoría
           </h2>
           <p className="text-[12px] text-muted">
@@ -108,7 +108,7 @@ export function CategoryDonut({ subscriptions, financings }: Props) {
                   isActive ? activeBg : 'text-muted hover:text-ink'
                 }`}
               >
-                {m === 'both' ? 'Ambos' : m === 'subs' ? 'Subs' : 'Financ.'}
+                {m === 'both' ? 'Ambos' : m === 'subs' ? 'Subs' : 'Finan'}
               </button>
             )
           })}
@@ -135,28 +135,28 @@ export function CategoryDonut({ subscriptions, financings }: Props) {
           </p>
         </div>
       ) : (
-        <div className="flex flex-col md:flex-row items-center gap-5">
+        <div className="flex flex-col md:flex-row items-center md:items-center gap-5 md:gap-10 md:py-4">
           {/* Donut SVG */}
           <DonutSVG slices={slices} total={total} />
 
           {/* Leyenda */}
-          <ul className="flex-1 w-full space-y-1.5 min-w-0">
+          <ul className="flex-1 w-full space-y-1.5 md:space-y-3 min-w-0">
             {slices.map((s) => (
               <li
                 key={s.categoryId}
-                className="flex items-center gap-2.5 text-sm"
+                className="flex items-center gap-2.5 md:gap-3 text-sm md:text-base"
               >
                 <span
-                  className="h-3 w-3 rounded-sm shrink-0"
+                  className="h-3 w-3 md:h-3.5 md:w-3.5 rounded-sm shrink-0"
                   style={{ background: s.color }}
                   aria-hidden
                 />
-                <span className="text-[14px] leading-none">{s.emoji}</span>
+                <span className="text-[14px] md:text-[16px] leading-none">{s.emoji}</span>
                 <span className="flex-1 truncate text-ink">{s.label}</span>
-                <span className="text-muted tabular-nums shrink-0 text-[12px]">
+                <span className="text-muted tabular-nums shrink-0 text-[12px] md:text-[13px]">
                   {Math.round(s.pct * 100)}%
                 </span>
-                <span className="text-ink tabular-nums shrink-0 font-medium text-[13px] min-w-[60px] text-right">
+                <span className="text-ink tabular-nums shrink-0 font-medium text-[13px] md:text-[14px] min-w-[60px] md:min-w-[80px] text-right">
                   {formatEuroSmart(s.amount)}
                 </span>
               </li>
@@ -169,17 +169,23 @@ export function CategoryDonut({ subscriptions, financings }: Props) {
 }
 
 /* -------------------------------------------------------------------- */
-/* Donut SVG                                                            */
+/* Donut SVG  (responsive: ~160px en móvil, ~240px en escritorio)       */
 /* -------------------------------------------------------------------- */
 function DonutSVG({ slices, total }: { slices: Slice[]; total: number }) {
-  const size = 160
+  // Usamos un viewBox virtual de 160x160 y dejamos que CSS escale el tamaño
+  // visual del contenedor según el breakpoint.
+  const vb = 160
   const radius = 70
   const inner = 48
-  const center = size / 2
+  const center = vb / 2
 
   return (
-    <div className="relative shrink-0" style={{ width: size, height: size }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <div className="relative shrink-0 h-40 w-40 md:h-60 md:w-60">
+      <svg
+        viewBox={`0 0 ${vb} ${vb}`}
+        className="h-full w-full"
+        preserveAspectRatio="xMidYMid meet"
+      >
         <g transform={`translate(${center} ${center}) rotate(-90)`}>
           {slices.map((s, i) => {
             // Una sola slice del 100% se renderiza como anillo completo
@@ -206,11 +212,11 @@ function DonutSVG({ slices, total }: { slices: Slice[]; total: number }) {
       </svg>
       {/* Total en el centro */}
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <span className="text-[10px] uppercase tracking-wider text-muted font-semibold">Total</span>
-        <span className="text-[15px] font-semibold text-ink tabular-nums leading-tight">
+        <span className="text-[10px] md:text-[11px] uppercase tracking-wider text-ink/70 font-bold">Total</span>
+        <span className="text-[15px] md:text-[20px] font-semibold text-ink tabular-nums leading-tight">
           {formatEuroSmart(total)}
         </span>
-        <span className="text-[10px] text-muted">/ mes</span>
+        <span className="text-[10px] md:text-[11px] text-muted">/ mes</span>
       </div>
     </div>
   )

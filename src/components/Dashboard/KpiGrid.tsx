@@ -82,7 +82,7 @@ function KpiCard({ label, value, hint, icon: Icon, tint }: KpiCardProps) {
   return (
     <div className="card card-hoverable p-4 md:p-5">
       <div className="flex items-start justify-between mb-3">
-        <span className="text-[11px] font-medium uppercase tracking-wider text-muted">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-ink/70">
           {label}
         </span>
         <span

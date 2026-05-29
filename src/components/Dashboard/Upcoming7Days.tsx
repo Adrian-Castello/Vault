@@ -32,7 +32,7 @@ export function Upcoming7Days({ subscriptions, financings }: Props) {
 
       <div className="relative">
         <div className="flex items-baseline justify-between mb-4">
-          <h2 className="text-xs font-medium text-muted uppercase tracking-[0.18em]">
+          <h2 className="text-xs font-bold text-ink/70 uppercase tracking-[0.18em]">
             Próximos 7 días
           </h2>
           <span className="text-xs text-muted tabular-nums">

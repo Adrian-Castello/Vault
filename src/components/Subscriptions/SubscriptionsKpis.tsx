@@ -29,7 +29,7 @@ export function SubscriptionsKpis({ items }: Props) {
         className="card p-5"
       >
         <div className="flex items-start justify-between mb-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-ink/70">
             Suscripciones activas
           </span>
           <Repeat className="h-4 w-4 text-mint" />
@@ -69,7 +69,7 @@ export function SubscriptionsKpis({ items }: Props) {
         className="card p-5"
       >
         <div className="flex items-start justify-between mb-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-ink/70">
             Coste mensual total
           </span>
           <Sparkles className="h-4 w-4 text-violet" />

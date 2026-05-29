@@ -45,7 +45,7 @@ export function FinancingsKpis({ items }: Props) {
         className="card p-5"
       >
         <div className="flex items-start justify-between mb-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-ink/70">
             Libre de deuda
           </span>
           {freeDate ? (
@@ -108,7 +108,7 @@ export function FinancingsKpis({ items }: Props) {
           className="card p-4"
         >
           <div className="flex items-start justify-between mb-1.5">
-            <span className="text-[10.5px] font-semibold uppercase tracking-[0.15em] text-muted leading-tight">
+            <span className="text-[10.5px] font-bold uppercase tracking-[0.15em] text-ink/70 leading-tight">
               Deuda total
             </span>
             <Wallet className="h-3.5 w-3.5 text-warm shrink-0" />
@@ -131,7 +131,7 @@ export function FinancingsKpis({ items }: Props) {
           className="card p-4"
         >
           <div className="flex items-start justify-between mb-1.5">
-            <span className="text-[10.5px] font-semibold uppercase tracking-[0.15em] text-muted leading-tight">
+            <span className="text-[10.5px] font-bold uppercase tracking-[0.15em] text-ink/70 leading-tight">
               Cuota mensual
             </span>
             <CalendarClock className="h-3.5 w-3.5 text-violet shrink-0" />

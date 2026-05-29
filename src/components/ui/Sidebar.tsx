@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Repeat, Wallet, Sparkles, Settings } from 'lucide-react'
+import { LayoutDashboard, Repeat, Wallet, Settings } from 'lucide-react'
 import { ThemeToggle } from './ThemeToggle'
 
 const items = [
@@ -34,21 +34,20 @@ export function Sidebar({ onOpenSettings }: Props) {
         aria-hidden
       />
 
-      {/* Logo */}
-      <div className="relative px-1 mb-8 flex items-center gap-3">
-        <div className="relative">
-          <div className="absolute inset-0 rounded-xl blur-md opacity-60 bg-gradient-to-br from-mint to-violet" aria-hidden />
-          <div className="relative h-10 w-10 rounded-xl bg-gradient-to-br from-mint to-violet flex items-center justify-center text-white shadow-lg">
-            <Sparkles className="h-4 w-4" strokeWidth={2.4} />
-          </div>
-        </div>
-        <div className="leading-tight">
-          <div className="text-[15px] font-semibold tracking-tight text-ink">Vault</div>
-          <div className="text-[11px] text-muted tracking-wide">tus pagos, claros</div>
-        </div>
+      {/* Logo: Vault grande con gradient + frase corta */}
+      <div className="relative px-1 mb-9">
+        <h1
+          className="text-[34px] font-bold tracking-tight leading-none bg-gradient-to-r from-mint via-mint to-violet bg-clip-text text-transparent"
+          style={{ fontFamily: '"Inter", system-ui, sans-serif', letterSpacing: '-0.02em' }}
+        >
+          Vault
+        </h1>
+        <p className="mt-1.5 text-[11px] text-muted tracking-[0.15em] uppercase font-medium">
+          Tu pulso financiero
+        </p>
       </div>
 
-      {/* Separador con label */}
+      {/* Sección Menú */}
       <div className="relative px-1 mb-3">
         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-ink/50">
           Menú
@@ -90,25 +89,26 @@ export function Sidebar({ onOpenSettings }: Props) {
                   </>
                 )}
               </NavLink>
+
+              {/* Ajustes inmediatamente debajo de Financiaciones, dentro de "Menú" */}
+              {to === '/financiaciones' && (
+                <button
+                  type="button"
+                  onClick={onOpenSettings}
+                  className="mt-1.5 w-full flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-muted hover:bg-[var(--border)]/40 hover:text-ink transition-colors"
+                >
+                  <Settings className="h-[18px] w-[18px]" strokeWidth={2} />
+                  <span>Ajustes</span>
+                </button>
+              )}
             </li>
           ))}
         </ul>
       </nav>
 
-      {/* Footer: Ajustes + Tema */}
+      {/* Footer: solo el tema, sin label */}
       <div className="relative pt-4 mt-4 border-t border-subtle">
-        <span className="block px-1 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-ink/50">
-          Cuenta
-        </span>
-        <button
-          type="button"
-          onClick={onOpenSettings}
-          className="w-full flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-muted hover:bg-[var(--border)]/40 hover:text-ink transition-colors"
-        >
-          <Settings className="h-[18px] w-[18px]" strokeWidth={2} />
-          <span>Ajustes</span>
-        </button>
-        <div className="flex items-center justify-between rounded-xl px-3.5 py-2 mt-1">
+        <div className="flex items-center justify-between rounded-xl px-3.5 py-2">
           <span className="text-sm text-muted">Tema</span>
           <ThemeToggle />
         </div>

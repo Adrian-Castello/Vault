@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Wallet, CalendarClock, PartyPopper } from 'lucide-react'
+import { Wallet, CalendarClock, CalendarHeart, PartyPopper } from 'lucide-react'
 import type { Financing } from '../../lib/types'
 import {
   activeFinancings,
@@ -21,11 +21,9 @@ interface Props {
 }
 
 /**
- * Cuatro KPIs en grid 2x2:
- *  - F001  Deuda total pendiente
- *  - F002 + F003  Cuota mensual + N financiaciones activas
- *  - F014  Progreso global con donut
- *  - F021  Libre de deuda el ... + countdown en meses
+ * Layout actualizado:
+ *  - Card destacada arriba: "Libre de deuda" con fecha + countdown + barra de progreso global.
+ *  - Debajo, dos cards compactas: Deuda total y Cuota mensual.
  */
 export function FinancingsKpis({ items }: Props) {
   const debt = totalRemainingDebt(items)
@@ -38,8 +36,8 @@ export function FinancingsKpis({ items }: Props) {
   const months = freeDate ? Math.max(0, monthsBetween(today, parseISODate(freeDate))) : 0
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-5">
-      {/* F001 — Deuda total pendiente */}
+    <div className="space-y-3 md:space-y-4 mb-5">
+      {/* Card destacada: Libre de deuda + progreso */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -48,82 +46,10 @@ export function FinancingsKpis({ items }: Props) {
       >
         <div className="flex items-start justify-between mb-2">
           <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
-            Deuda total pendiente
-          </span>
-          <Wallet className="h-4 w-4 text-warm" />
-        </div>
-        <div className="mb-2">
-          <span className="text-3xl md:text-4xl font-semibold text-ink tabular-nums leading-none">
-            {formatEuroSmart(debt)}
-          </span>
-        </div>
-        <div className="text-[12px] text-muted">
-          {debt === 0 ? 'Sin deuda pendiente' : 'Total por amortizar'}
-        </div>
-      </motion.div>
-
-      {/* F002 + F003 — Cuota mensual + financiaciones activas */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, delay: 0.05 }}
-        className="card p-5"
-      >
-        <div className="flex items-start justify-between mb-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
-            Cuota mensual total
-          </span>
-          <CalendarClock className="h-4 w-4 text-violet" />
-        </div>
-        <div className="mb-2">
-          <span className="text-3xl md:text-4xl font-semibold text-ink tabular-nums leading-none">
-            {formatEuroSmart(monthly)}
-          </span>
-        </div>
-        <div className="text-[12px] text-muted">
-          {active.length === 0
-            ? 'Sin financiaciones activas'
-            : `${active.length} ${active.length === 1 ? 'financiación activa' : 'financiaciones activas'}`}
-        </div>
-      </motion.div>
-
-      {/* F014 — Progreso global con donut */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, delay: 0.1 }}
-        className="card p-5"
-      >
-        <div className="flex items-start justify-between mb-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
-            Progreso global
-          </span>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <ProgressDonut percent={progress} />
-          <div className="flex flex-col min-w-0">
-            <span className="text-3xl md:text-4xl font-semibold text-ink tabular-nums leading-none">
-              {Math.round(progress)}%
-            </span>
-            <span className="text-[12px] text-muted mt-1.5">amortizado</span>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* F021 — Libre de deuda el ... */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, delay: 0.15 }}
-        className="card p-5"
-      >
-        <div className="flex items-start justify-between mb-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
             Libre de deuda
           </span>
           {freeDate ? (
-            <CalendarClock className="h-4 w-4 text-mint" />
+            <CalendarHeart className="h-4 w-4 text-mint" />
           ) : (
             <PartyPopper className="h-4 w-4 text-mint" />
           )}
@@ -131,15 +57,33 @@ export function FinancingsKpis({ items }: Props) {
 
         {freeDate ? (
           <>
-            <div className="mb-1.5">
-              <span className="text-2xl md:text-3xl font-semibold text-ink leading-tight">
+            <div className="flex items-baseline gap-3 flex-wrap mb-3">
+              <span className="text-3xl md:text-4xl font-semibold text-ink leading-none">
                 {formatFullDate(freeDate)}
               </span>
+              <span className="text-sm text-muted">
+                {months === 0
+                  ? 'Este mes te liberas'
+                  : `en ${months} ${months === 1 ? 'mes' : 'meses'}`}
+              </span>
             </div>
-            <div className="text-[12px] text-muted">
-              {months === 0
-                ? 'Este mes te liberas'
-                : `en ${months} ${months === 1 ? 'mes' : 'meses'}`}
+
+            {/* Barra de progreso global */}
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] text-muted">Progreso global</span>
+                <span className="text-[11px] text-ink font-medium tabular-nums">
+                  {Math.round(progress)}% amortizado
+                </span>
+              </div>
+              <div className="h-2 rounded-full bg-[var(--border)]/60 overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                  className="h-full rounded-full bg-gradient-to-r from-mint to-violet"
+                />
+              </div>
             </div>
           </>
         ) : (
@@ -153,53 +97,57 @@ export function FinancingsKpis({ items }: Props) {
           </>
         )}
       </motion.div>
-    </div>
-  )
-}
 
-/* -------------------------------------------------------------------- */
-/* Donut SVG                                                            */
-/* -------------------------------------------------------------------- */
-function ProgressDonut({ percent }: { percent: number }) {
-  const size = 72
-  const stroke = 8
-  const radius = (size - stroke) / 2
-  const circumference = 2 * Math.PI * radius
-  const dashOffset = circumference - (Math.min(100, percent) / 100) * circumference
+      {/* Dos cards compactas: Deuda total + Cuota mensual */}
+      <div className="grid grid-cols-2 gap-3 md:gap-4">
+        {/* Deuda total pendiente */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, delay: 0.05 }}
+          className="card p-4"
+        >
+          <div className="flex items-start justify-between mb-1.5">
+            <span className="text-[10.5px] font-semibold uppercase tracking-[0.15em] text-muted leading-tight">
+              Deuda total
+            </span>
+            <Wallet className="h-3.5 w-3.5 text-warm shrink-0" />
+          </div>
+          <div className="mb-1">
+            <span className="text-xl md:text-2xl font-semibold text-ink tabular-nums leading-none">
+              {formatEuroSmart(debt)}
+            </span>
+          </div>
+          <div className="text-[11px] text-muted">
+            {debt === 0 ? 'Sin deuda pendiente' : 'Por amortizar'}
+          </div>
+        </motion.div>
 
-  return (
-    <div className="relative shrink-0" style={{ width: size, height: size }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
-        {/* Track */}
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          strokeWidth={stroke}
-          className="stroke-[var(--border)]"
-        />
-        {/* Progress */}
-        <defs>
-          <linearGradient id="donut-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="var(--mint)" />
-            <stop offset="100%" stopColor="var(--violet)" />
-          </linearGradient>
-        </defs>
-        <motion.circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="url(#donut-gradient)"
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset: dashOffset }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-        />
-      </svg>
+        {/* Cuota mensual total */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, delay: 0.1 }}
+          className="card p-4"
+        >
+          <div className="flex items-start justify-between mb-1.5">
+            <span className="text-[10.5px] font-semibold uppercase tracking-[0.15em] text-muted leading-tight">
+              Cuota mensual
+            </span>
+            <CalendarClock className="h-3.5 w-3.5 text-violet shrink-0" />
+          </div>
+          <div className="mb-1">
+            <span className="text-xl md:text-2xl font-semibold text-ink tabular-nums leading-none">
+              {formatEuroSmart(monthly)}
+            </span>
+          </div>
+          <div className="text-[11px] text-muted">
+            {active.length === 0
+              ? 'Sin activas'
+              : `${active.length} ${active.length === 1 ? 'activa' : 'activas'}`}
+          </div>
+        </motion.div>
+      </div>
     </div>
   )
 }

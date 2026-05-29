@@ -307,6 +307,89 @@ export function projectMonthlySpend(
 // =====================================================================
 
 /**
+ * Devuelve todos los cobros (suscripciones activas + financiaciones con cuotas pendientes)
+ * que ocurren en el mes indicado. Cada cobro lleva el día del mes para encajarlo en
+ * el calendario.
+ */
+export interface CalendarCharge {
+  id: string
+  kind: 'subscription' | 'financing'
+  name: string
+  emoji: string
+  amount: number
+  day: number // día del mes (1-31)
+  iso: string // fecha ISO completa
+  color: string // color de la categoría
+}
+
+export function chargesInMonth(
+  subs: Subscription[],
+  fins: Financing[],
+  monthDate: Date,
+  categoryById: (id: string) => { color: string },
+): CalendarCharge[] {
+  const out: CalendarCharge[] = []
+  const targetYear = monthDate.getFullYear()
+  const targetMonth = monthDate.getMonth()
+
+  // Suscripciones: ciclo dependiendo del billing_cycle
+  for (const s of subs) {
+    if (!subscriptionCounts(s)) continue
+    const start = parseISODate(s.next_charge_date)
+    const step = monthsPerCycle(s.billing_cycle)
+
+    // Avanzamos en el ciclo hasta encontrar una ocurrencia en el mes objetivo (o pasarla)
+    let cursor = new Date(start)
+    let safety = 0
+    while (safety < 240) {
+      const cy = cursor.getFullYear()
+      const cm = cursor.getMonth()
+      if (cy === targetYear && cm === targetMonth) {
+        out.push({
+          id: `${s.id}-${toISODate(cursor)}`,
+          kind: 'subscription',
+          name: s.name,
+          emoji: s.emoji || '✨',
+          amount: s.price,
+          day: cursor.getDate(),
+          iso: toISODate(cursor),
+          color: categoryById(s.category || 'general').color,
+        })
+        break
+      }
+      if (cy > targetYear || (cy === targetYear && cm > targetMonth)) break
+      cursor = addMonths(cursor, step)
+      safety++
+    }
+  }
+
+  // Financiaciones: cuotas mensuales mientras queden cuotas pendientes
+  for (const f of fins) {
+    const remaining = f.total_installments - f.paid_installments
+    if (remaining <= 0) continue
+    const start = parseISODate(f.next_charge_date)
+    for (let i = 0; i < remaining; i++) {
+      const cursor = addMonths(start, i)
+      if (cursor.getFullYear() === targetYear && cursor.getMonth() === targetMonth) {
+        out.push({
+          id: `${f.id}-${toISODate(cursor)}`,
+          kind: 'financing',
+          name: f.name,
+          emoji: f.emoji || '💳',
+          amount: f.monthly_payment,
+          day: cursor.getDate(),
+          iso: toISODate(cursor),
+          color: categoryById(f.category || 'general').color,
+        })
+        break // solo aparece una vez por mes
+      }
+    }
+  }
+
+  return out.sort((a, b) => a.day - b.day)
+}
+
+/**
  * Coste mensual equivalente agrupado por categoría, solo de suscripciones ACTIVAS.
  * Devuelve un map { categoryId: monto }.
  */

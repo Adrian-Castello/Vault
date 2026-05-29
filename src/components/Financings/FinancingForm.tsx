@@ -7,6 +7,7 @@ import { Field, Input, Select } from '../ui/Input'
 import { EmojiPicker } from '../ui/EmojiPicker'
 import { addMonths, formatFullDate, parseISODate, toISODate } from '../../lib/dates'
 import { useCategories, findCategory } from '../../lib/categories'
+import { useUnsavedChanges } from '../../hooks/useUnsavedChanges'
 
 interface Props {
   open: boolean
@@ -78,6 +79,9 @@ export function FinancingForm({ open, onClose, existing, onSubmit, onDelete }: P
   const [submitting, setSubmitting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const { categories } = useCategories()
+  const { confirmClose } = useUnsavedChanges(open, state)
+
+  const handleSafeClose = () => confirmClose(onClose)
 
   useEffect(() => {
     if (open) {
@@ -156,7 +160,7 @@ export function FinancingForm({ open, onClose, existing, onSubmit, onDelete }: P
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      onClose={handleSafeClose}
       title={isEdit ? 'Editar financiación' : 'Nueva financiación'}
       subtitle={
         isEdit ? 'Modifica los detalles abajo' : 'Añade un pago a plazos sin intereses'
@@ -176,7 +180,7 @@ export function FinancingForm({ open, onClose, existing, onSubmit, onDelete }: P
               {confirmDelete ? 'Confirmar eliminar' : 'Eliminar'}
             </Button>
           )}
-          <Button type="button" variant="ghost" onClick={onClose} disabled={submitting}>
+          <Button type="button" variant="ghost" onClick={handleSafeClose} disabled={submitting}>
             Cancelar
           </Button>
           <Button

@@ -7,6 +7,7 @@ import { Field, Input, Select } from '../ui/Input'
 import { EmojiPicker } from '../ui/EmojiPicker'
 import { toISODate } from '../../lib/dates'
 import { useCategories, findCategory } from '../../lib/categories'
+import { useUnsavedChanges } from '../../hooks/useUnsavedChanges'
 
 interface Props {
   open: boolean
@@ -74,6 +75,9 @@ export function SubscriptionForm({
   const [submitting, setSubmitting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const { categories } = useCategories()
+  const { confirmClose } = useUnsavedChanges(open, state)
+
+  const handleSafeClose = () => confirmClose(onClose)
 
   useEffect(() => {
     if (open) {
@@ -162,7 +166,7 @@ export function SubscriptionForm({
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      onClose={handleSafeClose}
       title={isEdit ? 'Editar suscripción' : 'Nueva suscripción'}
       subtitle={isEdit ? 'Modifica los detalles abajo' : 'Añade un cobro recurrente'}
       footer={
@@ -203,7 +207,7 @@ export function SubscriptionForm({
               {confirmDelete ? 'Confirmar eliminar' : 'Eliminar'}
             </Button>
           )}
-          <Button type="button" variant="ghost" onClick={onClose} disabled={submitting}>
+          <Button type="button" variant="ghost" onClick={handleSafeClose} disabled={submitting}>
             Cerrar
           </Button>
           <Button

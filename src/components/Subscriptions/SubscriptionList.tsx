@@ -3,6 +3,7 @@ import { ChevronDown } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { Subscription } from '../../lib/types'
 import { Skeleton } from '../ui/Skeleton'
+import { EmptyState } from '../ui/EmptyState'
 import { SubscriptionItem } from './SubscriptionItem'
 
 interface Props {
@@ -49,19 +50,13 @@ export function SubscriptionList({ items, loading, onItemClick, onCreate }: Prop
 
   if (items.length === 0) {
     return (
-      <div className="card p-10 text-center">
-        <div className="text-4xl mb-3">🔁</div>
-        <h3 className="font-semibold text-ink mb-1">Sin suscripciones</h3>
-        <p className="text-sm text-muted mb-5 max-w-xs mx-auto">
-          Lleva la cuenta de todo lo que se cobra cada mes, trimestre o año.
-        </p>
-        <button
-          onClick={onCreate}
-          className="text-sm font-medium text-ink hover:opacity-70 transition-opacity underline underline-offset-4 decoration-[var(--border)]"
-        >
-          Añade tu primera suscripción
-        </button>
-      </div>
+      <EmptyState
+        icon="🔁"
+        title="Sin suscripciones"
+        description="Lleva la cuenta de todo lo que se cobra cada mes, trimestre o año."
+        actionLabel="Crear primera suscripción"
+        onAction={onCreate}
+      />
     )
   }
 

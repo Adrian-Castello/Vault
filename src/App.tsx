@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Outlet,
   Route,
@@ -9,47 +9,62 @@ import { Sidebar } from './components/ui/Sidebar'
 import { BottomNav } from './components/ui/BottomNav'
 import { FloatingAddButton } from './components/ui/FloatingAddButton'
 import { Toaster } from './components/ui/Toaster'
-import { SettingsModal } from './components/ui/SettingsModal'
 import { useSubscriptions } from './hooks/useSubscriptions'
 import { useFinancings } from './hooks/useFinancings'
 import { DashboardPage } from './pages/DashboardPage'
 import { SubscriptionsPage } from './pages/SubscriptionsPage'
 import { FinancingsPage } from './pages/FinancingsPage'
+import { SettingsPage } from './pages/SettingsPage'
 import { SubscriptionForm } from './components/Subscriptions/SubscriptionForm'
 import { FinancingForm } from './components/Financings/FinancingForm'
 import { isSupabaseConfigured } from './lib/supabase'
 
 type ModalKind = 'subscription' | 'financing' | null
+type RouteContext = 'subscription' | 'financing' | 'dashboard' | 'settings'
 
 export interface AppOutletContext {
   subscriptions: ReturnType<typeof useSubscriptions>
   financings: ReturnType<typeof useFinancings>
   modal: ModalKind
   setModal: (m: ModalKind) => void
-  openSettings: () => void
+}
+
+/**
+ * Al cambiar de ruta, scroll arriba del todo (instantáneo).
+ * Si no hay scroll en window (móvil PWA con safe area), también ajusta el
+ * contenedor principal.
+ */
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior })
+    // Fallback: scroll del <main> por si el body no tiene overflow
+    const main = document.querySelector('main')
+    if (main) main.scrollTop = 0
+  }, [pathname])
+  return null
 }
 
 function Shell() {
   const subscriptions = useSubscriptions()
   const financings = useFinancings()
   const [modal, setModal] = useState<ModalKind>(null)
-  const [settingsOpen, setSettingsOpen] = useState(false)
   const location = useLocation()
 
   const path = location.pathname
-  const context: ReturnType<typeof routeContext> = routeContext(path)
+  const context: RouteContext = routeContext(path)
 
   const contextValue: AppOutletContext = {
     subscriptions,
     financings,
     modal,
     setModal,
-    openSettings: () => setSettingsOpen(true),
   }
 
   return (
     <div className="min-h-full flex bg-surface">
-      <Sidebar onOpenSettings={() => setSettingsOpen(true)} />
+      <ScrollToTop />
+      <Sidebar />
       <main className="flex-1 min-w-0 pb-28 md:pb-10 px-4 sm:px-6 md:px-10 pt-8 md:pt-8 max-w-6xl mx-auto w-full safe-top">
         {!isSupabaseConfigured && <ConfigBanner />}
         <Outlet context={contextValue} />
@@ -58,7 +73,6 @@ function Shell() {
       <BottomNav
         onAddSubscription={() => setModal('subscription')}
         onAddFinancing={() => setModal('financing')}
-        onOpenSettings={() => setSettingsOpen(true)}
       />
 
       <FloatingAddButton
@@ -67,7 +81,7 @@ function Shell() {
         onAddFinancing={() => setModal('financing')}
       />
 
-      {/* Modals available from the Dashboard FAB (the per-page editors handle their own state) */}
+      {/* Los formularios desde el FAB del Dashboard */}
       {path === '/' && (
         <>
           <SubscriptionForm
@@ -87,16 +101,15 @@ function Shell() {
         </>
       )}
 
-      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
-
       <Toaster />
     </div>
   )
 }
 
-function routeContext(path: string): 'subscription' | 'financing' | 'dashboard' {
+function routeContext(path: string): RouteContext {
   if (path.startsWith('/suscripciones')) return 'subscription'
   if (path.startsWith('/financiaciones')) return 'financing'
+  if (path.startsWith('/ajustes')) return 'settings'
   return 'dashboard'
 }
 
@@ -123,6 +136,7 @@ export function App() {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/suscripciones" element={<SubscriptionsPage />} />
         <Route path="/financiaciones" element={<FinancingsPage />} />
+        <Route path="/ajustes" element={<SettingsPage />} />
         <Route path="*" element={<DashboardPage />} />
       </Route>
     </Routes>

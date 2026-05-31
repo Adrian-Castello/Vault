@@ -1,5 +1,4 @@
 import { ReactNode } from 'react'
-import { ThemeToggle } from './ThemeToggle'
 
 interface Props {
   title: string | ReactNode
@@ -16,13 +15,11 @@ export function PageHeader({ title, subtitle, trailing }: Props) {
         </h1>
         {subtitle && <div className="text-sm text-muted mt-1.5">{subtitle}</div>}
       </div>
-      <div className="flex items-center gap-2 shrink-0">
-        {trailing}
-        {/* Toggle de tema visible solo en móvil; en desktop está en el sidebar */}
-        <div className="md:hidden">
-          <ThemeToggle />
+      {trailing && (
+        <div className="flex items-center gap-2 shrink-0">
+          {trailing}
         </div>
-      </div>
+      )}
     </header>
   )
 }

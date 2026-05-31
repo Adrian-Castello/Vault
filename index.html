@@ -2,7 +2,7 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Vault</title>
     <meta name="description" content="Vault — Gestiona suscripciones y financiaciones con control total de tus pagos recurrentes." />
 
@@ -43,7 +43,10 @@
         try {
           var stored = localStorage.getItem('theme');
           var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          var isDark = stored === 'dark' || (!stored && prefersDark);
+          // stored puede ser 'light' | 'dark' | 'system' o null
+          var isDark =
+            stored === 'dark' ||
+            ((stored === 'system' || !stored) && prefersDark);
           if (isDark) document.documentElement.classList.add('dark');
         } catch (_) {}
       })();

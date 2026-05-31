@@ -3,7 +3,7 @@ import { Plus, Repeat, Wallet, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 
 interface FloatingAddButtonProps {
-  context: 'subscription' | 'financing' | 'dashboard'
+  context: 'subscription' | 'financing' | 'dashboard' | 'settings'
   onAddSubscription: () => void
   onAddFinancing: () => void
 }
@@ -14,6 +14,9 @@ export function FloatingAddButton({
   onAddFinancing,
 }: FloatingAddButtonProps) {
   const [open, setOpen] = useState(false)
+
+  // En la página de ajustes el botón no tiene sentido
+  if (context === 'settings') return null
 
   const handleClick = () => {
     if (context === 'subscription') return onAddSubscription()

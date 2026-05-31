@@ -6,16 +6,16 @@ import { AnimatePresence, motion } from 'framer-motion'
 interface BottomNavProps {
   onAddSubscription: () => void
   onAddFinancing: () => void
-  onOpenSettings: () => void
 }
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/suscripciones', label: 'Suscripciones', icon: Repeat, end: false },
   { to: '/financiaciones', label: 'Financiaciones', icon: Wallet, end: false },
+  { to: '/ajustes', label: 'Ajustes', icon: Settings, end: false },
 ]
 
-export function BottomNav({ onAddSubscription, onAddFinancing, onOpenSettings }: BottomNavProps) {
+export function BottomNav({ onAddSubscription, onAddFinancing }: BottomNavProps) {
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
@@ -45,12 +45,18 @@ export function BottomNav({ onAddSubscription, onAddFinancing, onOpenSettings }:
   const path = location.pathname
   const isOnSubs = path.startsWith('/suscripciones')
   const isOnFins = path.startsWith('/financiaciones')
+  const isOnSettings = path.startsWith('/ajustes')
 
   const handleAddClick = () => {
     if (isOnSubs) return onAddSubscription()
     if (isOnFins) return onAddFinancing()
+    if (isOnSettings) return // no añade nada en Ajustes
     setMenuOpen((o) => !o)
   }
+
+  // Si estoy en Ajustes el botón "+" queda algo huérfano. Lo dejamos pero
+  // sin acción (un poco atenuado para no confundir).
+  const plusDisabled = isOnSettings
 
   return (
     <nav
@@ -108,21 +114,26 @@ export function BottomNav({ onAddSubscription, onAddFinancing, onOpenSettings }:
           <NavTab to={navItems[1].to} label={navItems[1].label} icon={navItems[1].icon} end={navItems[1].end} />
         </li>
 
-        {/* Botón + central destacado */}
+        {/* Botón + central */}
         <li className="flex justify-center items-center">
           <div className="relative">
             {/* Halo difuminado detrás */}
             <div
-              className="absolute inset-0 rounded-full blur-md opacity-50 pointer-events-none"
+              className={`absolute inset-0 rounded-full blur-md pointer-events-none transition-opacity ${
+                plusDisabled ? 'opacity-15' : 'opacity-50'
+              }`}
               style={{ background: 'linear-gradient(135deg, var(--mint), var(--violet))' }}
               aria-hidden
             />
             <motion.button
-              whileTap={{ scale: 0.88 }}
+              whileTap={plusDisabled ? undefined : { scale: 0.88 }}
               onClick={handleAddClick}
               aria-label="Añadir"
               aria-expanded={menuOpen}
-              className="relative rounded-full text-white shadow-lg flex items-center justify-center transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ink)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--card)]"
+              disabled={plusDisabled}
+              className={`relative rounded-full text-white shadow-lg flex items-center justify-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ink)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--card)] ${
+                plusDisabled ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
               style={{
                 background: 'linear-gradient(135deg, var(--mint), var(--violet))',
                 height: '2.5rem',
@@ -145,18 +156,9 @@ export function BottomNav({ onAddSubscription, onAddFinancing, onOpenSettings }:
           <NavTab to={navItems[2].to} label={navItems[2].label} icon={navItems[2].icon} end={navItems[2].end} />
         </li>
 
-        {/* Ajustes */}
+        {/* Ajustes (ahora NavLink, no botón) */}
         <li>
-          <button
-            type="button"
-            onClick={onOpenSettings}
-            className="w-full flex flex-col items-center justify-center gap-1 py-2.5 text-[10.5px] font-medium text-muted hover:text-ink transition-colors"
-          >
-            <span className="relative flex h-7 w-12 items-center justify-center rounded-full">
-              <Settings className="h-[18px] w-[18px]" strokeWidth={2} />
-            </span>
-            <span className="tracking-tight">Ajustes</span>
-          </button>
+          <NavTab to={navItems[3].to} label={navItems[3].label} icon={navItems[3].icon} end={navItems[3].end} />
         </li>
       </ul>
     </nav>

@@ -1,18 +1,14 @@
 import { useState } from 'react'
-import { Pencil, Plus, Trash2, RotateCcw, Check } from 'lucide-react'
-import { Modal } from './Modal'
-import { Button } from './Button'
-import { Field, Input } from './Input'
-import { useUserName } from '../../hooks/useUserName'
-import { useCategories, slugify } from '../../lib/categories'
-import { useToast } from '../../hooks/useToast'
-import { supabase } from '../../lib/supabase'
-import type { Category } from '../../lib/types'
-
-interface Props {
-  open: boolean
-  onClose: () => void
-}
+import { Pencil, Plus, Trash2, RotateCcw, Check, Moon, Palette, Sun, User, Tag } from 'lucide-react'
+import { Modal } from '../components/ui/Modal'
+import { Button } from '../components/ui/Button'
+import { Field, Input } from '../components/ui/Input'
+import { useUserName } from '../hooks/useUserName'
+import { useCategories, slugify } from '../lib/categories'
+import { useToast } from '../hooks/useToast'
+import { useTheme, type ThemeMode } from '../hooks/useTheme'
+import { supabase } from '../lib/supabase'
+import type { Category } from '../lib/types'
 
 const COLOR_OPTIONS = [
   '#EF4444', '#F59E0B', '#FBBF24', '#84CC16',
@@ -21,20 +17,23 @@ const COLOR_OPTIONS = [
   '#F97316', '#94A3B8', '#9CA3AF', '#6B7280',
 ]
 
-export function SettingsModal({ open, onClose }: Props) {
+export function SettingsPage() {
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Ajustes"
-      subtitle="Personaliza tu Vault"
-    >
-      <div className="space-y-7 py-1">
-        <UserNameSection />
-        <div className="h-px bg-[var(--border)]" />
-        <CategoriesSection />
-      </div>
-    </Modal>
+    <div className="space-y-8 max-w-3xl">
+      {/* Cabecera */}
+      <header>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink">
+          Ajustes
+        </h1>
+        <p className="text-muted text-sm mt-1">
+          Personaliza tu Vault.
+        </p>
+      </header>
+
+      <UserNameSection />
+      <AppearanceSection />
+      <CategoriesSection />
+    </div>
   )
 }
 
@@ -54,15 +53,13 @@ function UserNameSection() {
   }
 
   return (
-    <section>
-      <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted mb-3">
-        Tu nombre
-      </h3>
-      <p className="text-sm text-muted mb-3">
-        Aparecerá en el saludo del dashboard. Se guarda localmente en este
-        dispositivo.
+    <section className="card p-5 sm:p-6">
+      <SectionHeader icon={<User className="h-4 w-4" />} label="Personal" />
+      <p className="text-sm text-muted mb-4">
+        Tu nombre aparece en el saludo del dashboard. Se guarda localmente en
+        este dispositivo.
       </p>
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         <Input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -77,6 +74,62 @@ function UserNameSection() {
         >
           Guardar
         </Button>
+      </div>
+    </section>
+  )
+}
+
+/* -------------------------------------------------------------------- */
+/* Sección APARIENCIA                                                   */
+/* -------------------------------------------------------------------- */
+const themeOptions: { value: ThemeMode; label: string; icon: typeof Sun }[] = [
+  { value: 'light', label: 'Claro', icon: Sun },
+  { value: 'dark', label: 'Oscuro', icon: Moon },
+  { value: 'system', label: 'Sistema', icon: Palette },
+]
+
+function AppearanceSection() {
+  const { mode, setMode } = useTheme()
+
+  return (
+    <section className="card p-5 sm:p-6">
+      <SectionHeader icon={<Palette className="h-4 w-4" />} label="Apariencia" />
+      <p className="text-sm text-muted mb-4">
+        Elige el tema que prefieras. El modo Sistema se adapta automáticamente
+        a tu dispositivo.
+      </p>
+      <div className="grid grid-cols-3 gap-2">
+        {themeOptions.map((opt) => {
+          const Icon = opt.icon
+          const active = mode === opt.value
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setMode(opt.value)}
+              className={`relative flex flex-col items-center gap-2 rounded-xl border py-4 px-3 text-sm font-medium transition-all duration-200 ${
+                active
+                  ? 'border-transparent text-white'
+                  : 'border-subtle text-muted hover:text-ink hover:border-[var(--ink)]/30'
+              }`}
+            >
+              {active && (
+                <>
+                  <span
+                    className="absolute inset-0 rounded-xl bg-gradient-to-br from-mint to-violet"
+                    aria-hidden
+                  />
+                  <span
+                    className="absolute inset-0 rounded-xl bg-gradient-to-br from-mint to-violet blur-md opacity-40 -z-10"
+                    aria-hidden
+                  />
+                </>
+              )}
+              <Icon className="relative h-5 w-5" />
+              <span className="relative">{opt.label}</span>
+            </button>
+          )
+        })}
       </div>
     </section>
   )
@@ -116,11 +169,9 @@ function CategoriesSection() {
   }
 
   return (
-    <section>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-          Categorías
-        </h3>
+    <section className="card p-5 sm:p-6">
+      <div className="flex items-center justify-between mb-1.5">
+        <SectionHeader icon={<Tag className="h-4 w-4" />} label="Categorías" noBottomMargin />
         <button
           type="button"
           onClick={() => {
@@ -194,7 +245,6 @@ function CategoriesSection() {
         Crear categoría
       </Button>
 
-      {/* Editor */}
       {(creating || editing) && (
         <CategoryEditor
           existing={editing}
@@ -220,7 +270,6 @@ function CategoriesSection() {
         />
       )}
 
-      {/* Confirmación de borrado en modal centrado */}
       {pendingDelete && (
         <ConfirmDeleteModal
           category={pendingDelete}
@@ -234,7 +283,23 @@ function CategoriesSection() {
 }
 
 /* -------------------------------------------------------------------- */
-/* Sub-modal: editor de una categoría                                   */
+/* Header de sección                                                    */
+/* -------------------------------------------------------------------- */
+function SectionHeader({
+  icon, label, noBottomMargin = false,
+}: { icon: React.ReactNode; label: string; noBottomMargin?: boolean }) {
+  return (
+    <div className={`flex items-center gap-2 text-muted ${noBottomMargin ? '' : 'mb-3'}`}>
+      {icon}
+      <h2 className="text-[11px] font-bold uppercase tracking-[0.18em]">
+        {label}
+      </h2>
+    </div>
+  )
+}
+
+/* -------------------------------------------------------------------- */
+/* Sub-modal: editor de una categoría (idéntico al original)            */
 /* -------------------------------------------------------------------- */
 interface EditorProps {
   existing: Category | null
@@ -320,6 +385,7 @@ function CategoryEditor({ existing, onClose, onSubmit }: EditorProps) {
     </Modal>
   )
 }
+
 /* -------------------------------------------------------------------- */
 /* Sub-modal: confirmación de borrado de una categoría                  */
 /* -------------------------------------------------------------------- */

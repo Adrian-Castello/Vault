@@ -1,30 +1,61 @@
 import { useCallback, useEffect, useState } from 'react'
 
-type Theme = 'light' | 'dark'
+export type ThemeMode = 'light' | 'dark' | 'system'
 
-function readInitialTheme(): Theme {
-  if (typeof window === 'undefined') return 'light'
-  const stored = localStorage.getItem('theme')
-  if (stored === 'light' || stored === 'dark') return stored
+const STORAGE_KEY = 'theme'
+
+function readInitialMode(): ThemeMode {
+  if (typeof window === 'undefined') return 'system'
+  const stored = localStorage.getItem(STORAGE_KEY)
+  if (stored === 'light' || stored === 'dark' || stored === 'system') return stored
+  return 'system'
+}
+
+function resolve(mode: ThemeMode): 'light' | 'dark' {
+  if (mode === 'light' || mode === 'dark') return mode
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
+function applyToDOM(theme: 'light' | 'dark') {
+  const root = document.documentElement
+  if (theme === 'dark') root.classList.add('dark')
+  else root.classList.remove('dark')
+}
+
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(readInitialTheme)
+  const [mode, setModeState] = useState<ThemeMode>(readInitialMode)
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => resolve(readInitialMode()))
 
+  // Aplicar al DOM y guardar
   useEffect(() => {
-    const root = document.documentElement
-    if (theme === 'dark') {
-      root.classList.add('dark')
-    } else {
-      root.classList.remove('dark')
-    }
-    localStorage.setItem('theme', theme)
-  }, [theme])
+    const t = resolve(mode)
+    setTheme(t)
+    applyToDOM(t)
+    localStorage.setItem(STORAGE_KEY, mode)
+  }, [mode])
 
+  // En modo "system", escuchar cambios del SO
+  useEffect(() => {
+    if (mode !== 'system') return
+    const mql = window.matchMedia('(prefers-color-scheme: dark)')
+    const handler = () => {
+      const t = resolve('system')
+      setTheme(t)
+      applyToDOM(t)
+    }
+    mql.addEventListener('change', handler)
+    return () => mql.removeEventListener('change', handler)
+  }, [mode])
+
+  const setMode = useCallback((m: ThemeMode) => setModeState(m), [])
+
+  // Mantengo `toggle` por compatibilidad con el código existente.
   const toggle = useCallback(() => {
-    setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
+    setModeState((m) => {
+      const current = resolve(m)
+      return current === 'dark' ? 'light' : 'dark'
+    })
   }, [])
 
-  return { theme, toggle, setTheme }
+  return { mode, setMode, theme, toggle }
 }
